@@ -18,8 +18,9 @@ $user_roles = $_SESSION['user_roles'] ?? [];
 $user_data = [];
 if ($conn !== null) {
     $stmt = $conn->prepare("SELECT id, nama, email, username, roles FROM staf_sekolah WHERE id = ?");
-    $stmt->execute([$user_id]);
-    $user_data = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
+    if ($stmt && $stmt->execute([$user_id])) {
+        $user_data = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
+    }
 }
 
 $notif = [];
@@ -298,7 +299,7 @@ $role_display = $role_label[$user_data['roles'] ?? ''] ?? ucwords(str_replace('_
             { pct: '80%',  color: '#22c55e', text: 'Kuat' },
             { pct: '100%', color: '#10b981', text: 'Sangat Kuat 💪' },
         ];
-        const lvl = levels[Math.min(score - 1, 4)] || levels[0];
+        const lvl = levels[Math.max(0, Math.min(score - 1, 4))];
         bar.style.width = lvl.pct;
         bar.style.backgroundColor = lvl.color;
         label.textContent = lvl.text;
@@ -328,33 +329,38 @@ $role_display = $role_label[$user_data['roles'] ?? ''] ?? ucwords(str_replace('_
     // Validasi sebelum submit
     document.getElementById('editForm').addEventListener('submit', function(e) {
         const nama     = document.getElementById('nama').value.trim();
+        const email    = document.getElementById('email').value.trim();
         const lama     = document.getElementById('password_lama').value;
         const baru     = document.getElementById('password_baru').value;
         const konfirm  = document.getElementById('password_confirm').value;
         const btn      = document.getElementById('btn-submit');
 
-        if (!nama) {
+        function stopSubmit(msg, focusId) {
             e.preventDefault();
-            alert('⚠️ Nama tidak boleh kosong!');
-            document.getElementById('nama').focus();
+            alert(msg);
+            document.getElementById(focusId)?.focus();
+            btn.disabled = false;
+            btn.textContent = '💾 Simpan Perubahan';
+        }
+
+        if (!nama) {
+            stopSubmit('⚠️ Nama tidak boleh kosong!', 'nama');
+            return;
+        }
+        if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            stopSubmit('⚠️ Format email tidak valid!', 'email');
             return;
         }
         if (!lama) {
-            e.preventDefault();
-            alert('⚠️ Password saat ini wajib diisi!');
-            document.getElementById('password_lama').focus();
+            stopSubmit('⚠️ Password saat ini wajib diisi!', 'password_lama');
             return;
         }
         if (baru && baru.length < 6) {
-            e.preventDefault();
-            alert('⚠️ Password baru minimal 6 karakter!');
-            document.getElementById('password_baru').focus();
+            stopSubmit('⚠️ Password baru minimal 6 karakter!', 'password_baru');
             return;
         }
         if (baru && baru !== konfirm) {
-            e.preventDefault();
-            alert('⚠️ Konfirmasi password tidak cocok!');
-            document.getElementById('password_confirm').focus();
+            stopSubmit('⚠️ Konfirmasi password tidak cocok!', 'password_confirm');
             return;
         }
 
