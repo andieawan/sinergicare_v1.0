@@ -1,6 +1,11 @@
 <?php
 // /prints/cetak_meninggalkan.php
-require_once '../config/config.php';
+require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../core/auth.php';
+require_once __DIR__ . '/../core/functions.php';
+
+// Proteksi halaman cetak
+requireLogin();
 
 if (!isset($_GET['student_id'])) {
     die("Data siswa tidak valid.");
@@ -43,14 +48,14 @@ if (!$siswa) {
 <body onload="window.print()">
 
     <div class="kop">
-        <?php if (file_exists('../uploads/logo.png')): ?>
-            <img src="../uploads/logo.png" class="logo-img" alt="Logo Sekolah">
+        <?php if (file_exists(__DIR__ . '/../uploads/logo.png')): ?>
+            <img src="/uploads/logo.png" class="logo-img" alt="Logo Sekolah">
         <?php endif; ?>
         <div class="kop-text">
             <h2>PEMERINTAH PROVINSI / YAYASAN PENDIDIKAN<br>SMK PUSAT KEUNGGULAN SINERGICARE</h2>
             <p>Jl. Jenderal Sudirman No. 123, Indonesia | Telp: (021) 555-1234 | Email: info@smk.sch.id</p>
         </div>
-        <?php if (file_exists('../uploads/logo.png')): ?>
+        <?php if (file_exists(__DIR__ . '/../uploads/logo.png')): ?>
             <div class="spacer"></div>
         <?php endif; ?>
     </div>
@@ -78,7 +83,7 @@ if (!$siswa) {
             <p>__________________________</p>
         </div>
         <div class="ttd-box">
-            <p>Jember, <?php echo date('d F Y'); ?><br>Guru Pembimbing BK</p>
+            <p>Jember, <?php echo formatTanggalIndo(date('Y-m-d')); ?><br>Guru Pembimbing BK</p>
             <br><br><br><br>
             <p>__________________________<br>NIP / NIPY.</p>
         </div>

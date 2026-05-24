@@ -6,7 +6,7 @@ header('Content-Type: application/json');
 
 // Proteksi API: Tolak request jika tidak memiliki sesi login aktif
 if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isLoggedIn()) {
-    echo json_encode(['status' => 'failed', 'message' => 'Unauthorized API request.']);
+    echo json_encode(['status' => 'error', 'message' => 'Unauthorized API request.']);
     exit();
 }
 
@@ -17,7 +17,7 @@ $jam_surat     = $_POST['jam'] ?? '';
 $dibuat_oleh   = currentUserId();
 
 if ($student_id <= 0 || empty($tipe_surat) || !isset($conn) || $conn === null) {
-    echo json_encode(['status' => 'failed', 'message' => 'Missing parameter or database connection error.']);
+    echo json_encode(['status' => 'error', 'message' => 'Missing parameter or database connection error.']);
     exit();
 }
 
@@ -48,8 +48,9 @@ try {
         $dibuat_oleh
     ]);
 
-    echo json_encode(['status' => 'success', 'message' => 'Histori cetak berkas berhasil diarsip ke log sistem.']);
+    echo json_encode(['status' => 'success']);
+    exit();
 } catch (PDOException $e) {
-    echo json_encode(['status' => 'failed', 'message' => 'PDO Exception: ' . $e->getMessage()]);
+    echo json_encode(['status' => 'error', 'message' => 'PDO Exception: ' . $e->getMessage()]);
+    exit();
 }
-exit();
