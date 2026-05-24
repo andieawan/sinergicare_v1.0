@@ -5,14 +5,14 @@
  * PERBAIKAN H5: hitungUlangRadarSiswa() sebelumnya hanya mengambil bobot TERPARAH
  * dengan LIMIT 1 — artinya 1 pelanggaran berat langsung zona merah tanpa melihat
  * total akumulasi. Logika baru menggunakan sistem skor tertimbang:
- *   - ringan  = 1 poin per kejadian
- *   - sedang  = 3 poin per kejadian
- *   - berat   = 10 poin per kejadian
+ * - ringan  = 1 poin per kejadian
+ * - sedang  = 3 poin per kejadian
+ * - berat   = 10 poin per kejadian
  *
  * Threshold zona:
- *   - < 3 poin  → hijau  (teguran)
- *   - 3–9 poin  → kuning (konseling)
- *   - ≥ 10 poin → merah  (skorsing_drop)
+ * - < 3 poin  → hijau  (teguran)
+ * - 3–9 poin  → kuning (konseling)
+ * - ≥ 10 poin → merah  (skorsing_drop)
  *
  * Ini memungkinkan 1 pelanggaran ringan tetap di zona hijau,
  * 3 pelanggaran ringan baru masuk kuning, dan 1 pelanggaran berat langsung merah
@@ -20,9 +20,19 @@
  * Sesuaikan nilai konstanta BOBOT_* dan threshold jika kebijakan sekolah berbeda.
  */
 
-const BOBOT_RINGAN  = 1;
-const BOBOT_SEDANG  = 3;
-const BOBOT_BERAT   = 10;
+/**
+ * ============================================================================
+ * KONSTANTA BOBOT & THRESHOLD RADAR
+ * ============================================================================
+ * CATATAN KEBIJAKAN SEKOLAH:
+ * Nilai `BOBOT_BERAT` sengaja disamakan dengan `THRESHOLD_MERAH` (bernilai 10).
+ * Hal ini bersifat INTENSIONAL agar siswa yang melakukan minimal 1 pelanggaran 
+ * berat langsung otomatis masuk ke dalam ZONA MERAH tanpa harus menunggu 
+ * akumulasi dari pelanggaran lainnya.
+ */
+const BOBOT_RINGAN     = 1;
+const BOBOT_SEDANG     = 3;
+const BOBOT_BERAT      = 10;
 const THRESHOLD_KUNING = 3;   // skor >= ini → kuning
 const THRESHOLD_MERAH  = 10;  // skor >= ini → merah
 
