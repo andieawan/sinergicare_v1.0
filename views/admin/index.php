@@ -3,6 +3,11 @@
         <h2 class="text-base font-bold tracking-tight md:text-lg">⚙️ Pusat Kontrol Master Data & Hak Akses</h2>
         <p class="text-xs text-slate-400">Kelola konfigurasi kelas, kategori pelanggaran, tingkat risiko, serta kredensial akun staf sekolah.</p>
     </div>
+    <div class="flex items-center gap-2">
+        <button onclick="bukaModalImportSiswa()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-sm transition-colors flex items-center gap-2">
+            📥 Impor Massal Siswa (CSV)
+        </button>
+    </div>
 </div>
 
 <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">

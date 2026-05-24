@@ -92,6 +92,35 @@
     </div>
 </div>
 
+<div id="modal_import_siswa" class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200">
+        <div class="flex justify-between items-center border-b border-slate-100 pb-3 mb-4">
+            <h3 class="text-sm font-bold text-slate-800 tracking-tight">📥 Impor Massal Data Siswa</h3>
+            <button type="button" onclick="closeModalImportSiswa()" class="text-slate-400 hover:text-slate-600 text-sm">✕</button>
+        </div>
+        
+        <form action="/modules/siswa/import.php" method="POST" enctype="multipart/form-data" class="space-y-4">
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 text-[11px] text-slate-600 space-y-1">
+                <p class="font-bold text-slate-700">💡 Panduan Standar Dokumen:</p>
+                <p>1. Baris pertama wajib berupa nama kolom: <code class="bg-slate-200 px-1 py-0.5 rounded font-mono text-indigo-600">nisn,nama,kelas</code></p>
+                <p>2. Simpan spreadsheet Microsoft Excel Anda ke format **CSV (Comma delimited)**.</p>
+                <p>3. Jika nama kelas baru ditulis pada berkas, sistem otomatis membuatkan kelas tersebut.</p>
+            </div>
+
+            <div>
+                <label for="file_csv" class="block text-xs font-semibold text-slate-600 mb-1">Pilih Berkas (.csv)</label>
+                <input type="file" id="file_csv" name="file_csv" accept=".csv" required
+                       class="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:border-indigo-500 file:mr-3 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+            </div>
+
+            <div class="flex justify-end space-x-2 pt-2">
+                <button type="button" onclick="closeModalImportSiswa()" class="px-3 py-1.5 text-xs font-semibold text-slate-500 hover:text-slate-700">Batal</button>
+                <button type="submit" class="bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs px-4 py-2 rounded-xl shadow-sm tracking-wide">🚀 Mulai Unggah</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
 // CONTROLLER MODAL KELAS
 function bukaModalTambahKelas() {
@@ -153,7 +182,13 @@ function bukaModalEditStaf(id, nama, email, username, roles) {
     toggleModal('modal_staf', true);
 }
 function closeModalStaf() { toggleModal('modal_staf', false); }
-
+// CONTROLLER MODAL IMPOR SISWA
+function bukaModalImportSiswa() {
+    toggleModal('modal_import_siswa', true);
+}
+function closeModalImportSiswa() {
+    toggleModal('modal_import_siswa', false);
+}
 // UTILITY TOGGLE CLASS
 function toggleModal(id, show) {
     const el = document.getElementById(id);

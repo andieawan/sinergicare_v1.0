@@ -3,6 +3,12 @@
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../core/functions.php';
 
+// PERBAIKAN: Memuat file otentikasi (sesuaikan path folder jika auth.php berada di tempat lain)
+require_once __DIR__ . '/../core/auth.php'; 
+
+// PERBAIKAN: Memastikan hanya user yang sudah login yang bisa mengakses halaman ini
+requireLogin();
+
 if (!isset($_GET['student_id'])) {
     die("Data siswa tidak valid.");
 }

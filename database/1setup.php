@@ -42,7 +42,7 @@ try {
     $pdo->exec("SET FOREIGN_KEY_CHECKS = 1");
 
     // ============================================================
-    // STRUKTUR TABEL (tidak berubah dari versi asli)
+    // STRUKTUR TABEL 
     // ============================================================
     $pdo->exec("CREATE TABLE `classes` (
         `id` INT AUTO_INCREMENT PRIMARY KEY,
@@ -158,35 +158,20 @@ try {
     echo "✔ Seluruh struktur tabel berhasil di-compile.\n\n";
 
     // ============================================================
-    // DATA SEEDING
-    // PERBAIKAN H1: semua password di-hash dengan bcrypt, bukan plaintext
+    // DATA SEEDING (HANYA ADMIN)
     // ============================================================
     echo "----------------------------------------------------\n";
     echo " ⚙️  MEMULAI PROSES SEEDING...\n";
     echo "----------------------------------------------------\n";
 
-    $classes = [
-        ['5', 'X DKV 1'], ['4', 'XI BD 1'], ['1', 'XI DKV 1'], ['2', 'XI DKV 2'], ['3', 'XI DKV 3']
-    ];
-    $stmt = $pdo->prepare("INSERT INTO `classes` (id, nama_kelas) VALUES (?, ?)");
-    foreach ($classes as $c) $stmt->execute($c);
+    // 1. Memasukkan Data Role Dasar (Dibutuhkan untuk hak akses)
+    $roles = [['1', 'admin'], ['2', 'guru'], ['3', 'bk'], ['4', 'yayasan'], ['5', 'super_admin']];
+    $stmt  = $pdo->prepare("INSERT INTO `roles` (id, nama_role) VALUES (?, ?)");
+    foreach ($roles as $r) $stmt->execute($r);
 
-    $v_categories = [
-        ['1', 'Terlambat masuk lingkungan sekolah',          'ringan'],
-        ['2', 'Atribut seragam tidak lengkap atau menyimpang','ringan'],
-        ['3', 'Membolos atau keluar kelas tanpa izin saat jam KBM', 'sedang'],
-        ['4', 'Membawa atau bermain HP saat ujian tanpa instruksi',  'sedang'],
-        ['5', 'Terlibat perkelahian atau tawuran pelajar',    'berat'],
-        ['6', 'Merusak aset atau fasilitas utama instansi sekolah',  'berat'],
-    ];
-    $stmt = $pdo->prepare("INSERT INTO `violation_categories` (id, nama_kejadian, bobot_risiko) VALUES (?, ?, ?)");
-    foreach ($v_categories as $vc) $stmt->execute($vc);
-
-    // PERBAIKAN H1: hash semua password seed dengan bcrypt
+    // 2. Memasukkan 1 Akun Default (Super Admin)
     $staf = [
-        ['1', 'Administrator Utama', 'super@smk.sch.id', 'admin',  'admin123',  'super_admin'],
-        ['2', 'Budi Santoso, M.Pd',  'budi@smk.sch.id',  'budi',   'budi',      'bk'],
-        ['3', 'Guru Contoh',          'guru@smk.sch.id',  'guru',   'guru',      'guru'],
+        ['1', 'Administrator Utama', 'super@smk.sch.id', 'admin', 'admin123', 'super_admin']
     ];
     $stmt = $pdo->prepare("INSERT INTO `staf_sekolah` (id, nama, email, username, password, roles) VALUES (?, ?, ?, ?, ?, ?)");
     foreach ($staf as $s) {
@@ -195,46 +180,12 @@ try {
         echo "✔ Akun '{$s[3]}' dibuat (password ter-hash).\n";
     }
 
-    $roles = [['1', 'admin'], ['2', 'guru'], ['3', 'bk'], ['4', 'yayasan'], ['5', 'super_admin']];
-    $stmt  = $pdo->prepare("INSERT INTO `roles` (id, nama_role) VALUES (?, ?)");
-    foreach ($roles as $r) $stmt->execute($r);
-
-    $u_roles = [['1', '1', '5'], ['2', '2', '3'], ['3', '3', '2']];
+    // 3. Menghubungkan Akun Admin dengan Role 'super_admin'
+    $u_roles = [['1', '1', '5']];
     $stmt    = $pdo->prepare("INSERT INTO `user_roles` (id, user_id, role_id) VALUES (?, ?, ?)");
     foreach ($u_roles as $ur) $stmt->execute($ur);
 
-    $students = [
-        ['1', '202601', 'Bambang tole', '1', 'kuning', 'konseling',  'tidak_ada', '0', null],
-        ['2', '202602', 'Bambang Paas', '2', 'hijau',  'teguran',    'tidak_ada', '0', null],
-        ['3', '202603', 'Bambang Pamas','3', 'merah',  'teguran',    'sp_1',      '0', null],
-        ['4', '202670', 'Adi Pratama',  '1', 'hijau',  'teguran',    'tidak_ada', '0', null],
-    ];
-    $stmt = $pdo->prepare("INSERT INTO `students` (id, nisn, nama, class_id, status_warna, level_eskalasi, status_sp, is_probation, probation_end) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
-    foreach ($students as $st) $stmt->execute($st);
-
-    $incidents = [
-        ['1', '3', '1', null, 'Terlambat', '2026-05-22 21:20:55'],
-        ['2', '3', '5', null, 'Berkelahi', '2026-05-22 21:22:02'],
-        ['3', '2', '5', null, 'Tawuran',   '2026-05-22 21:28:38'],
-        ['4', '4', '1', '3',  'Telat',     '2026-05-22 22:00:48'],
-    ];
-    $stmt = $pdo->prepare("INSERT INTO `incidents` (id, student_id, category_id, user_id, catatan, created_at) VALUES (?, ?, ?, ?, ?, ?)");
-    foreach ($incidents as $inc) $stmt->execute($inc);
-
-    $journals = [
-        ['1', '1', '1', '1', 'Terlambat dikarenakan bangun siang', 'Lingkungan Sekolah', '2026-05-22', '2026-05-22 21:05:27'],
-        ['2', '1', '1', '2', 'Atribut tidak lengkap',              'Lingkungan Sekolah', '2026-05-22', '2026-05-22 21:16:28'],
-        ['3', '1', '1', '3', 'Bolos',                              'Lingkungan Sekolah', '2026-05-22', '2026-05-22 21:17:22'],
-    ];
-    $stmt = $pdo->prepare("INSERT INTO `journals` (id, student_id, user_id, category_id, catatan, lokasi_kejadian, tanggal_kejadian, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-    foreach ($journals as $j) $stmt->execute($j);
-
-    $sp_records = [
-        ['1', '3', 'sp_1', 'Diberikan penindakan disiplin bertahap Surat Peringatan Tingkat 1 karena akumulasi kasus kritis pada Zona Merah.', '1', '2026-05-22 22:37:20', '0'],
-    ];
-    $stmt = $pdo->prepare("INSERT INTO `sp_records` (id, student_id, tingkat_sp, alasan_sp, diterbitkan_oleh, created_at, is_approved) VALUES (?, ?, ?, ?, ?, ?, ?)");
-    foreach ($sp_records as $sp) $stmt->execute($sp);
-
+    // Menyimpan kredensial untuk memblokir setup berulang
     $credentials = json_encode([
         'host'     => $host,
         'username' => $user,
@@ -248,11 +199,10 @@ try {
     echo " 🎉 SYSTEM IS READY!\n";
     echo " ⚠️  PENTING: Hapus atau rename file setup.php ini!\n";
     echo "====================================================\n";
-    echo "\nKredensial default:\n";
-    echo "  admin  / admin123\n";
-    echo "  budi   / budi\n";
-    echo "  guru   / guru\n";
-    echo "\nSemua password sudah di-hash dengan bcrypt.\n";
+    echo "\nKredensial Login Default:\n";
+    echo "  Username : admin\n";
+    echo "  Password : admin123\n";
+    echo "\nPassword telah diamankan dengan enkripsi bcrypt.\n";
 
 } catch (PDOException $e) {
     echo "\n❌ [FATAL ERROR]: " . $e->getMessage() . "\n";
