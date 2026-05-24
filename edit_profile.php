@@ -1,15 +1,18 @@
 <?php
 // edit_profile.php
-require_once 'config/config.php';
-
+// PERBAIKAN KEAMANAN: Session check HARUS dilakukan SEBELUM require config
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+// Proteksi: Redirect ke login jika belum terautentikasi
 if (!isset($_SESSION['user_id'])) {
-    header("Location: login.php");
+    header("Location: /login.php");
     exit();
 }
+
+// Baru setelah session validated, load konfigurasi database
+require_once __DIR__ . '/config/config.php';
 
 $user_id    = $_SESSION['user_id'];
 $user_nama  = $_SESSION['user_nama'] ?? '';
@@ -98,7 +101,7 @@ $role_display = $role_label[$user_data['roles'] ?? ''] ?? ucwords(str_replace('_
     <!-- ===== TOPBAR ===== -->
     <header class="sticky top-0 z-30 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200/60 dark:border-slate-800">
         <div class="max-w-2xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
-            <a href="index.php" class="flex items-center gap-2.5 group">
+            <a href="/index.php" class="flex items-center gap-2.5 group">
                 <div class="h-8 w-8 rounded-xl bg-slate-900 dark:bg-white flex items-center justify-center text-white dark:text-slate-900 font-black text-sm transition group-hover:scale-105">S</div>
                 <span class="font-extrabold text-sm tracking-tight hidden sm:block">SinergiCare</span>
                 <span class="text-slate-300 dark:text-slate-600 hidden sm:block">·</span>
@@ -109,7 +112,7 @@ $role_display = $role_label[$user_data['roles'] ?? ''] ?? ucwords(str_replace('_
                     <span class="dark:hidden">🌙</span>
                     <span class="hidden dark:block">☀️</span>
                 </button>
-                <a href="index.php" class="h-8 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition">
+                <a href="/index.php" class="h-8 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition">
                     ← Dashboard
                 </a>
             </div>
@@ -146,7 +149,7 @@ $role_display = $role_label[$user_data['roles'] ?? ''] ?? ucwords(str_replace('_
 
             <!-- Avatar circle overlapping header -->
             <div class="relative -mt-10 px-6 pb-6 flex items-end gap-4">
-                <div class="h-20 w-20 rounded-[1.2rem] bg-white dark:bg-slate-800 border-4 border-white dark:border-slate-900 shadow-md flex items-center justify-center text-2xl font-black text-slate-900 dark:text-white select-none shrink-0">
+                <div class="h-20 w-20 rounded-[1.2rem] bg-white dark:bg-slate-800 border-4 border-white dark:border-slate-900 shadow-md flex items-center justify-center text-2xl font-black text-slate-900 dark:text-white">
                     <?php echo mb_strtoupper(mb_substr($user_data['nama'] ?? 'U', 0, 1)); ?>
                 </div>
                 <div class="pb-1">
@@ -159,7 +162,7 @@ $role_display = $role_label[$user_data['roles'] ?? ''] ?? ucwords(str_replace('_
         </div>
 
         <!-- ===== FORM EDIT ===== -->
-        <form action="actions/proses_profile_edit.php" method="POST" id="editForm" novalidate>
+        <form action="/actions/proses_profile_edit.php" method="POST" id="editForm" novalidate>
 
             <!-- SEKSI: Data Diri -->
             <div class="fade-up-2 bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-200/60 dark:border-slate-800 shadow-sm p-6 space-y-5">
@@ -249,8 +252,8 @@ $role_display = $role_label[$user_data['roles'] ?? ''] ?? ucwords(str_replace('_
                         class="flex-1 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold py-3.5 px-6 rounded-2xl text-sm hover:opacity-90 active:scale-95 transition-all shadow-sm">
                     💾 Simpan Perubahan
                 </button>
-                <a href="index.php"
-                   class="flex-1 text-center bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold py-3.5 px-6 rounded-2xl text-sm hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">
+                <a href="/index.php"
+                   class="flex-1 text-center bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold py-3.5 px-6 rounded-2xl text-sm hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
                     ← Kembali
                 </a>
             </div>
