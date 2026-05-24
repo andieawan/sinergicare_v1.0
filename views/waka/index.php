@@ -57,10 +57,11 @@
                                     </button>
                                     
                                     <?php if (!$siswa['is_probation']): ?>
-                                        <button onclick="alert('Fitur aktivasi probation ID Siswa: <?php echo $siswa['id']; ?> aktif di Tahap 19')" 
-                                                class="bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 text-[10px] font-bold px-2.5 py-1.5 rounded-lg transition-colors">
+                                        <a href="/modules/waka/set_probation.php?id=<?php echo (int)$siswa['id']; ?>" 
+                                           onclick="return confirm('Apakah Anda yakin ingin mengaktifkan status Probation (Masa Percobaan) 30 hari secara manual untuk siswa: <?php echo htmlspecialchars(addslashes($siswa['nama']), ENT_QUOTES, 'UTF-8'); ?>?')"
+                                           class="bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 text-[10px] font-bold px-2.5 py-1.5 rounded-lg transition-colors inline-block align-middle">
                                             🛑 Set Probation
-                                        </button>
+                                        </a>
                                     <?php endif; ?>
                                 </td>
                             </tr>
@@ -106,8 +107,6 @@
                                     <div class="text-[9px] text-slate-400 font-normal mt-0.5">
                                         Dibuat oleh: 👤
                                         <?php
-                                        // BUG FIX #7: Sebelumnya menampilkan $sp['diterbitkan_oleh'] (integer ID),
-                                        // sekarang menggunakan $sp['nama_pejabat'] dari hasil JOIN di pages/waka.php
                                         echo htmlspecialchars($sp['nama_pejabat'] ?? 'Tidak diketahui', ENT_QUOTES, 'UTF-8');
                                         ?>
                                     </div>

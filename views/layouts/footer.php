@@ -7,13 +7,28 @@
         </div>
     </footer>
 
-    </div> </div> <script>
-    // Logika Responsif Menu Mobile (Jika diperlukan ke depan)
+    </div> </div> 
+    
+<script>
+    // Logika Navigasi Responsif Menu Mobile (Sidebar Toggle)
     document.addEventListener('DOMContentLoaded', () => {
         const btnToggle = document.querySelector('button[title="Buka Menu"]');
-        if (btnToggle) {
-            btnToggle.addEventListener('click', () => {
-                alert('Fungsi navigasi mobile dapat diintegrasikan sesuai kebutuhan layout.');
+        const sidebar = document.getElementById('sidebar');
+        
+        if (btnToggle && sidebar) {
+            btnToggle.addEventListener('click', (e) => {
+                e.stopPropagation();
+                // Mendukung pendekatan layout off-canvas slide ataupun display state hidden
+                sidebar.classList.toggle('hidden');
+                sidebar.classList.toggle('-translate-x-full');
+            });
+            
+            // Opsional: Menutup sidebar secara otomatis jika pengguna mengklik area luar menu (mobile overlay)
+            document.addEventListener('click', (e) => {
+                if (!sidebar.contains(e.target) && !btnToggle.contains(e.target) && !sidebar.classList.contains('-translate-x-full')) {
+                    sidebar.classList.add('-translate-x-full');
+                    sidebar.classList.add('hidden');
+                }
             });
         }
     });
