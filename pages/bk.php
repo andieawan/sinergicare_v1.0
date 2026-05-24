@@ -8,13 +8,26 @@ requireRole(['super_admin', 'admin', 'bk']);
 
 $user_id_login = currentUserId();
 
+$all_students        = []; // BUG FIX: SEMUA siswa untuk fitur cetak utama
 $students_attention  = [];
 $active_consequences = [];
 $letter_logs         = [];
-$staf_list           = []; // BUG FIX: untuk dropdown penanggung_jawab di modal
+$staf_list           = [];
 
 if (isset($conn) && $conn !== null) {
     try {
+        // FITUR BARU: Query SEMUA siswa untuk cetak surat (tidak dibatasi status)
+        $stmt_all = $conn->query("
+            SELECT s.*, c.nama_kelas 
+            FROM students s
+            LEFT JOIN classes c ON s.class_id = c.id
+            ORDER BY s.nama ASC
+        ");
+        if ($stmt_all) {
+            $all_students = $stmt_all->fetchAll(PDO::FETCH_ASSOC);
+        }
+
+        // Siswa dalam pantauan (status kuning/merah)
         $stmt_stu = $conn->query("
             SELECT s.*, c.nama_kelas 
             FROM students s
@@ -60,6 +73,7 @@ if (isset($conn) && $conn !== null) {
         }
 
     } catch (Exception $e) {
+        $all_students        = [];
         $students_attention  = [];
         $active_consequences = [];
         $letter_logs         = [];
