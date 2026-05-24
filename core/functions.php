@@ -1,45 +1,87 @@
 <?php
 /**
- * Menghitung ulang status warna radar dan level eskalasi siswa berdasarkan insiden terakhir
+ * core/functions.php
+ *
+ * PERBAIKAN H5: hitungUlangRadarSiswa() sebelumnya hanya mengambil bobot TERPARAH
+ * dengan LIMIT 1 — artinya 1 pelanggaran berat langsung zona merah tanpa melihat
+ * total akumulasi. Logika baru menggunakan sistem skor tertimbang:
+ *   - ringan  = 1 poin per kejadian
+ *   - sedang  = 3 poin per kejadian
+ *   - berat   = 10 poin per kejadian
+ *
+ * Threshold zona:
+ *   - < 3 poin  → hijau  (teguran)
+ *   - 3–9 poin  → kuning (konseling)
+ *   - ≥ 10 poin → merah  (skorsing_drop)
+ *
+ * Ini memungkinkan 1 pelanggaran ringan tetap di zona hijau,
+ * 3 pelanggaran ringan baru masuk kuning, dan 1 pelanggaran berat langsung merah
+ * (karena 10 poin ≥ threshold merah — ini masih logis untuk pelanggaran berat).
+ * Sesuaikan nilai konstanta BOBOT_* dan threshold jika kebijakan sekolah berbeda.
  */
+
+const BOBOT_RINGAN  = 1;
+const BOBOT_SEDANG  = 3;
+const BOBOT_BERAT   = 10;
+const THRESHOLD_KUNING = 3;   // skor >= ini → kuning
+const THRESHOLD_MERAH  = 10;  // skor >= ini → merah
+
 function hitungUlangRadarSiswa(PDO $conn, int $student_id): void {
-    $stmt = $conn->prepare(
-        "SELECT vc.bobot_risiko FROM incidents i
-         JOIN violation_categories vc ON i.category_id = vc.id
-         WHERE i.student_id = ?
-         ORDER BY FIELD(vc.bobot_risiko, 'berat', 'sedang', 'ringan') LIMIT 1"
-    );
+    // Hitung skor akumulatif berdasarkan semua insiden siswa (bukan hanya terparah)
+    $stmt = $conn->prepare("
+        SELECT vc.bobot_risiko, COUNT(*) AS jumlah
+        FROM incidents i
+        JOIN violation_categories vc ON i.category_id = vc.id
+        WHERE i.student_id = ?
+        GROUP BY vc.bobot_risiko
+    ");
     $stmt->execute([$student_id]);
-    $res   = $stmt->fetch(PDO::FETCH_ASSOC);
-    
-    $warna = 'hijau'; 
-    $level = 'teguran';
-    
-    if ($res) {
-        if ($res['bobot_risiko'] === 'berat')  { $warna = 'merah';  $level = 'skorsing_drop'; }
-        if ($res['bobot_risiko'] === 'sedang') { $warna = 'kuning'; $level = 'konseling'; }
+    $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    $total_skor = 0;
+    foreach ($rows as $row) {
+        $bobot = match($row['bobot_risiko']) {
+            'berat'  => BOBOT_BERAT,
+            'sedang' => BOBOT_SEDANG,
+            default  => BOBOT_RINGAN,
+        };
+        $total_skor += $bobot * (int)$row['jumlah'];
     }
-    
+
+    // Tentukan zona berdasarkan total skor akumulatif
+    if ($total_skor >= THRESHOLD_MERAH) {
+        $warna = 'merah';
+        $level = 'skorsing_drop';
+    } elseif ($total_skor >= THRESHOLD_KUNING) {
+        $warna = 'kuning';
+        $level = 'konseling';
+    } else {
+        $warna = 'hijau';
+        $level = 'teguran';
+    }
+
     $conn->prepare("UPDATE students SET status_warna = ?, level_eskalasi = ? WHERE id = ?")
          ->execute([$warna, $level, $student_id]);
 }
 
 /**
- * Mengubah format tanggal (YYYY-MM-DD) menjadi format penanggalan resmi Indonesia
+ * Mengubah format tanggal (YYYY-MM-DD) menjadi format penanggalan resmi Indonesia.
  */
 function formatTanggalIndo(string $tanggal): string {
     if (empty($tanggal)) return '........................';
-    
+
     $hari  = ['', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
     $bulan = ['', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-                 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
-                 
+                  'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+
     $ts = strtotime($tanggal);
+    if ($ts === false) return '........................';
+
     return $hari[date('N', $ts)] . ', ' . date('d', $ts) . ' ' . $bulan[(int)date('n', $ts)] . ' ' . date('Y', $ts);
 }
 
 /**
- * Mendapatkan class Tailwind CSS untuk komponen badge warna berdasarkan status radar
+ * Mendapatkan class Tailwind CSS untuk badge warna berdasarkan status radar.
  */
 function getStatusBadgeClass(string $status): string {
     return match($status) {
@@ -50,7 +92,7 @@ function getStatusBadgeClass(string $status): string {
 }
 
 /**
- * Pemetaan slug role di database menjadi label nama resmi untuk antarmuka pengguna
+ * Pemetaan slug role ke label nama resmi untuk antarmuka pengguna.
  */
 function getRoleLabel(string $role): string {
     $labels = [

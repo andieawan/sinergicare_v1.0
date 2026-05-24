@@ -1,0 +1,16 @@
+# PERBAIKAN M5: credentials database tidak boleh masuk version control
+config/db_credentials.json
+
+# File setup destruktif tidak boleh ada di repo production
+database/setup.php
+database/reset_complete.php
+database/reset_db.php
+
+# Uploads user
+uploads/
+
+# Dependencies
+vendor/
+
+# Log files
+*.log

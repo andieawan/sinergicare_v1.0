@@ -1,11 +1,24 @@
 <?php
-// database/setup.php - DATABASE AUTO-INITIALIZER ENGINE FOR SINERGICARE
+// database/setup.php — DATABASE AUTO-INITIALIZER ENGINE FOR SINERGICARE
+// PERBAIKAN H3: cek apakah database sudah ada sebelum dijalankan ulang
 header("Content-Type: text/plain");
 
 $host   = "localhost";
 $user   = "root";
 $pass   = "root"; // Sesuaikan dengan password MySQL Anda
 $dbname = "sinergicare_smk";
+
+// PERBAIKAN H3: blokir re-eksekusi jika credentials sudah ada
+$credentials_file = __DIR__ . '/../config/db_credentials.json';
+if (file_exists($credentials_file)) {
+    echo "====================================================\n";
+    echo " ⛔ SETUP DIBLOKIR\n";
+    echo "====================================================\n\n";
+    echo "File db_credentials.json sudah ada — database kemungkinan sudah tersetup.\n";
+    echo "Hapus file db_credentials.json terlebih dahulu jika ingin setup ulang.\n\n";
+    echo "Atau akses: /database/reset_complete.php (butuh login Super Admin)\n";
+    exit();
+}
 
 try {
     $pdo = new PDO("mysql:host=$host", $user, $pass);
@@ -26,12 +39,11 @@ try {
         $pdo->exec("DROP TABLE IF EXISTS `$table`");
     }
     echo "✔ Pembersihan tabel usang selesai.\n\n";
-
     $pdo->exec("SET FOREIGN_KEY_CHECKS = 1");
 
-    // ====================================================================================
-    // STRUKTUR TABEL
-    // ====================================================================================
+    // ============================================================
+    // STRUKTUR TABEL (tidak berubah dari versi asli)
+    // ============================================================
     $pdo->exec("CREATE TABLE `classes` (
         `id` INT AUTO_INCREMENT PRIMARY KEY,
         `nama_kelas` VARCHAR(50) NOT NULL
@@ -66,8 +78,6 @@ try {
         FOREIGN KEY (`role_id`) REFERENCES `roles`(`id`) ON DELETE CASCADE
     ) ENGINE=InnoDB");
 
-    // BUG FIX 1: status_sp diubah dari INT ke VARCHAR(20) DEFAULT 'tidak_ada'
-    // agar konsisten dengan seluruh kode aplikasi yang memperlakukannya sebagai string
     $pdo->exec("CREATE TABLE `students` (
         `id` INT AUTO_INCREMENT PRIMARY KEY,
         `nisn` VARCHAR(20) NOT NULL UNIQUE,
@@ -121,8 +131,6 @@ try {
         FOREIGN KEY (`penanggung_jawab`) REFERENCES `staf_sekolah`(`id`)  ON DELETE CASCADE
     ) ENGINE=InnoDB");
 
-    // BUG FIX 2: tingkat_sp diubah dari INT ke VARCHAR(20)
-    // agar konsisten dengan nilai string 'sp_1', 'sp_2', 'sp_3' yang dipakai di seluruh kode
     $pdo->exec("CREATE TABLE `sp_records` (
         `id` INT AUTO_INCREMENT PRIMARY KEY,
         `student_id` INT NOT NULL,
@@ -149,11 +157,12 @@ try {
 
     echo "✔ Seluruh struktur tabel berhasil di-compile.\n\n";
 
-    // ====================================================================================
+    // ============================================================
     // DATA SEEDING
-    // ====================================================================================
+    // PERBAIKAN H1: semua password di-hash dengan bcrypt, bukan plaintext
+    // ============================================================
     echo "----------------------------------------------------\n";
-    echo " ⚙️ MEMULAI PROSES SEEDING...\n";
+    echo " ⚙️  MEMULAI PROSES SEEDING...\n";
     echo "----------------------------------------------------\n";
 
     $classes = [
@@ -163,23 +172,28 @@ try {
     foreach ($classes as $c) $stmt->execute($c);
 
     $v_categories = [
-        ['1', 'Terlambat masuk lingkungan sekolah', 'ringan'],
-        ['2', 'Atribut seragam tidak lengkap atau menyimpang', 'ringan'],
+        ['1', 'Terlambat masuk lingkungan sekolah',          'ringan'],
+        ['2', 'Atribut seragam tidak lengkap atau menyimpang','ringan'],
         ['3', 'Membolos atau keluar kelas tanpa izin saat jam KBM', 'sedang'],
-        ['4', 'Membawa atau bermain HP saat ujian tanpa instruksi', 'sedang'],
-        ['5', 'Terlibat perkelahian atau tawuran pelajar', 'berat'],
-        ['6', 'Merusak aset atau fasilitas utama instansi sekolah', 'berat'],
+        ['4', 'Membawa atau bermain HP saat ujian tanpa instruksi',  'sedang'],
+        ['5', 'Terlibat perkelahian atau tawuran pelajar',    'berat'],
+        ['6', 'Merusak aset atau fasilitas utama instansi sekolah',  'berat'],
     ];
     $stmt = $pdo->prepare("INSERT INTO `violation_categories` (id, nama_kejadian, bobot_risiko) VALUES (?, ?, ?)");
     foreach ($v_categories as $vc) $stmt->execute($vc);
 
+    // PERBAIKAN H1: hash semua password seed dengan bcrypt
     $staf = [
-        ['1', 'Administrator Utama', 'super@smk.sch.id', 'admin',  'admin123', 'super_admin', '2026-05-22 18:31:34'],
-        ['2', 'Budi Santoso, M.Pd',  'budi@smk.sch.id',  'budi',   'budi',     'bk',          '2026-05-22 20:30:13'],
-        ['3', 'Guru Contoh',          'guru@smk.sch.id',  'guru',   'guru',     'guru',         '2026-05-22 21:31:51'],
+        ['1', 'Administrator Utama', 'super@smk.sch.id', 'admin',  'admin123',  'super_admin'],
+        ['2', 'Budi Santoso, M.Pd',  'budi@smk.sch.id',  'budi',   'budi',      'bk'],
+        ['3', 'Guru Contoh',          'guru@smk.sch.id',  'guru',   'guru',      'guru'],
     ];
-    $stmt = $pdo->prepare("INSERT INTO `staf_sekolah` (id, nama, email, username, password, roles, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)");
-    foreach ($staf as $s) $stmt->execute($s);
+    $stmt = $pdo->prepare("INSERT INTO `staf_sekolah` (id, nama, email, username, password, roles) VALUES (?, ?, ?, ?, ?, ?)");
+    foreach ($staf as $s) {
+        $s[4] = password_hash($s[4], PASSWORD_BCRYPT); // hash password sebelum insert
+        $stmt->execute($s);
+        echo "✔ Akun '{$s[3]}' dibuat (password ter-hash).\n";
+    }
 
     $roles = [['1', 'admin'], ['2', 'guru'], ['3', 'bk'], ['4', 'yayasan'], ['5', 'super_admin']];
     $stmt  = $pdo->prepare("INSERT INTO `roles` (id, nama_role) VALUES (?, ?)");
@@ -189,7 +203,6 @@ try {
     $stmt    = $pdo->prepare("INSERT INTO `user_roles` (id, user_id, role_id) VALUES (?, ?, ?)");
     foreach ($u_roles as $ur) $stmt->execute($ur);
 
-    // BUG FIX 1 (lanjutan): seed status_sp sekarang pakai string 'tidak_ada' bukan integer 0
     $students = [
         ['1', '202601', 'Bambang tole', '1', 'kuning', 'konseling',  'tidak_ada', '0', null],
         ['2', '202602', 'Bambang Paas', '2', 'hijau',  'teguran',    'tidak_ada', '0', null],
@@ -216,7 +229,6 @@ try {
     $stmt = $pdo->prepare("INSERT INTO `journals` (id, student_id, user_id, category_id, catatan, lokasi_kejadian, tanggal_kejadian, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
     foreach ($journals as $j) $stmt->execute($j);
 
-    // BUG FIX 2 (lanjutan): seed tingkat_sp sekarang pakai string 'sp_1' bukan integer
     $sp_records = [
         ['1', '3', 'sp_1', 'Diberikan penindakan disiplin bertahap Surat Peringatan Tingkat 1 karena akumulasi kasus kritis pada Zona Merah.', '1', '2026-05-22 22:37:20', '0'],
     ];
@@ -231,12 +243,17 @@ try {
     ], JSON_PRETTY_PRINT);
     file_put_contents(__DIR__ . '/../config/db_credentials.json', $credentials);
 
-    echo "✔ Proses Seeding 100% Selesai.\n\n";
+    echo "\n✔ Proses Seeding 100% Selesai.\n\n";
     echo "====================================================\n";
-    echo " 🎉 SYSTEM IS READY! Hapus file setup.php ini.\n";
+    echo " 🎉 SYSTEM IS READY!\n";
+    echo " ⚠️  PENTING: Hapus atau rename file setup.php ini!\n";
     echo "====================================================\n";
+    echo "\nKredensial default:\n";
+    echo "  admin  / admin123\n";
+    echo "  budi   / budi\n";
+    echo "  guru   / guru\n";
+    echo "\nSemua password sudah di-hash dengan bcrypt.\n";
 
 } catch (PDOException $e) {
     echo "\n❌ [FATAL ERROR]: " . $e->getMessage() . "\n";
 }
-?>
