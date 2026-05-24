@@ -217,7 +217,13 @@ function cetakSuratLangsung(studentId, tipeSurat, basePathSurat) {
     formData.append('tipe_surat', tipeSurat);
 
     fetch('/modules/bk/log_cetak.php', { method: 'POST', body: formData })
-        .then(res => res.json())
+        // PERBAIKAN: Periksa res.ok sebelum parsing JSON untuk mengantisipasi kegagalan HTTP/PHP Error
+        .then(res => {
+            if (!res.ok) {
+                throw new Error(`HTTP error! status: ${res.status}`);
+            }
+            return res.json();
+        })
         .then(data => {
             if(data.status === 'success') {
                 console.log(`[Log Arsip]: ${label} berhasil dicatat.`);

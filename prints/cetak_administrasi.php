@@ -5,7 +5,6 @@ require_once '../config/config.php';
 
 if (session_status() === PHP_SESSION_NONE) { session_start(); }
 if (!isset($_SESSION['user_id'])) { die("Akses ditolak."); }
-// ... sisa kode di bawahnya tetap biarkan sama seperti aslinya
 
 $tipe       = $_GET['tipe'] ?? '';
 $student_id = $_GET['student_id'] ?? '';
@@ -21,10 +20,12 @@ if (!$data_siswa) { die("Siswa tidak ditemukan."); }
 
 // --- FUNGSI HEADER SURAT ---
 function printHeader() {
+    // PERBAIKAN: Unifikasi path menggunakan path absolut '/uploads/logo.png' 
+    // dan perbaikan sintaks CSS dari object-contain menjadi object-fit: contain;
     return '
     <div style="text-align: center; border-bottom: 3px double #000; padding-bottom: 10px; margin-bottom: 20px; position: relative;">
         
-        <img src="../assets/logo_sekolah.png" style="position: absolute; left: 20px; top: 0; height: 75px; object-contain;" onerror="this.style.display=\'none\'">
+        <img src="/uploads/logo.png" style="position: absolute; left: 20px; top: 0; height: 75px; object-fit: contain;" onerror="this.style.display=\'none\'">
         
         <h2 style="margin: 0; font-size: 18px; padding-left: 60px;">YAYASAN PEMBINA SMK SINERGICARE</h2>
         <h1 style="margin: 5px 0 0 0; font-size: 22px; padding-left: 60px;">SMK SINERGICARE INDONESIA</h1>

@@ -27,7 +27,8 @@ if (isset($_GET['id']) && isset($conn) && $conn !== null) {
 
         setFlash('success', "✨ Berhasil menghapus seluruh data siswa: {$siswa['nama']}.");
     } catch (PDOException $e) {
-        setFlash('error', '⚠️ Gagal menghapus data siswa (Kemungkinan data terikat dengan jurnal insiden): ' . $e->getMessage());
+        // PERBAIKAN: Menghapus spekulasi error dalam kurung karena foreign key sudah dikonfigurasi CASCADE
+        setFlash('error', '⚠️ Gagal menghapus data siswa dari sistem: ' . $e->getMessage());
     }
 } else {
     setFlash('error', '⚠️ Parameter ID Siswa tidak valid!');

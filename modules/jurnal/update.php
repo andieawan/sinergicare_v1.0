@@ -30,8 +30,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($conn) && $conn !== null) {
         }
 
         // Validasi Aturan Bisnis: Cek pembatasan hak akses edit
-        $is_owner    = ($incident['user_id'] == $user_id_login);
-        $within_time = (time() - strtotime($incident['created_at']) <= 1800); // 30 Menit
+        $is_owner = ($incident['user_id'] == $user_id_login);
+        
+        // PERBAIKAN: Menggunakan DateTime dan DateTimeZone agar kalkulasi waktu tidak meleset akibat bias timezone server
+        $tz             = new DateTimeZone(date_default_timezone_get());
+        $waktu_sekarang = new DateTime('now', $tz);
+        $waktu_dibuat   = new DateTime($incident['created_at'], $tz);
+        
+        // Hitung selisih waktu dalam satuan detik
+        $selisih_detik  = $waktu_sekarang->getTimestamp() - $waktu_dibuat->getTimestamp();
+        $within_time    = ($selisih_detik <= 1800 && $selisih_detik >= 0); // Maksimal 30 Menit (1800 detik)
 
         if (!$is_bk_admin && !($is_owner && $within_time)) {
             setFlash('error', '🔒 Akses ditolak! Batas waktu edit mandiri (30 menit) telah kedaluwarsa.');
