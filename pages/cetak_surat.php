@@ -170,10 +170,19 @@ $page_title = "Cetak Surat - Panel Administrasi";
 
     <script>
         let selectedStudent = null;
+        let debounceTimer = null;
 
-        // Search Student
-        document.getElementById('search_student').addEventListener('keyup', async (e) => {
+        // Search Student dengan debounce
+        document.getElementById('search_student').addEventListener('keyup', (e) => {
+            clearTimeout(debounceTimer);
             const query = e.target.value.trim();
+            
+            debounceTimer = setTimeout(() => {
+                performSearch(query);
+            }, 300); // 300ms debounce
+        });
+
+        async function performSearch(query) {
             const resultsDiv = document.getElementById('search_results');
             
             if (query.length < 2) {
@@ -187,9 +196,9 @@ $page_title = "Cetak Surat - Panel Administrasi";
                 
                 if (data.status === 'success' && data.students.length > 0) {
                     resultsDiv.innerHTML = data.students.map(student => `
-                        <div class="p-3 bg-slate-100 rounded-lg border border-slate-200 cursor-pointer hover:bg-slate-200 transition-colors" onclick="selectStudent(${student.id}, '${student.nama}', '${student.nisn}', '${student.nama_kelas}')">
-                            <p class="font-semibold text-slate-800">${student.nama}</p>
-                            <p class="text-xs text-slate-600">NISN: ${student.nisn} | Kelas: ${student.nama_kelas}</p>
+                        <div class="p-3 bg-slate-100 rounded-lg border border-slate-200 cursor-pointer hover:bg-slate-200 transition-colors" onclick="selectStudent(${student.id}, '${escapeHtml(student.nama)}', '${student.nisn}', '${escapeHtml(student.nama_kelas)}')">
+                            <p class="font-semibold text-slate-800">${escapeHtml(student.nama)}</p>
+                            <p class="text-xs text-slate-600">NISN: ${student.nisn} | Kelas: ${escapeHtml(student.nama_kelas)}</p>
                         </div>
                     `).join('');
                 } else {
@@ -199,7 +208,19 @@ $page_title = "Cetak Surat - Panel Administrasi";
                 console.error('Error:', error);
                 resultsDiv.innerHTML = '<p class="text-sm text-red-500 text-center py-2">Error mencari data</p>';
             }
-        });
+        }
+
+        // Escape HTML untuk security
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, m => map[m]);
+        }
 
         // Select Student
         function selectStudent(id, nama, nisn, kelas) {
@@ -258,7 +279,7 @@ $page_title = "Cetak Surat - Panel Administrasi";
                 select.innerHTML = '<option value="">-- Pilih SP --</option>';
                 if (data.status === 'success' && data.sp_list.length > 0) {
                     select.innerHTML += data.sp_list.map(sp => `
-                        <option value="${sp.id}">${sp.tingkat_sp.toUpperCase()} (${sp.created_at})</option>
+                        <option value="${sp.id}">${escapeHtml(sp.tingkat_sp.toUpperCase())} (${sp.created_at})</option>
                     `).join('');
                 } else {
                     select.innerHTML += '<option disabled>Tidak ada SP untuk siswa ini</option>';
@@ -300,12 +321,16 @@ $page_title = "Cetak Surat - Panel Administrasi";
                         } else if (letterType === 'pernyataan_disiplin') {
                             printUrl = `/prints/cetak_pernyataan.php?student_id=${studentId}`;
                         } else if (letterType === 'sp') {
-                            printUrl = `/prints/cetak_sp.php?id=${formData.get('sp_select')}`;
+                            const spId = document.getElementById('sp_select').value;
+                            printUrl = `/prints/cetak_sp.php?id=${spId}`;
                         }
                         
                         // Open print
                         window.open(printUrl, '_blank');
                         closeLetterForm();
+                        
+                        // Show success message
+                        alert('✅ Surat berhasil dibuat dan log tercatat');
                     } else {
                         alert('Error: ' + data.message);
                     }
@@ -315,6 +340,13 @@ $page_title = "Cetak Surat - Panel Administrasi";
                     alert('Terjadi kesalahan saat mencatat log');
                 });
         }
+
+        // Close modal when clicking outside
+        document.getElementById('modal_cetak').addEventListener('click', (e) => {
+            if (e.target.id === 'modal_cetak') {
+                closeLetterForm();
+            }
+        });
     </script>
 </body>
 </html>
