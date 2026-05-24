@@ -44,9 +44,9 @@ if (!file_exists(DB_CONFIG_FILE)) {
         $conn->setAttribute(PDO::ATTR_ERRMODE,          PDO::ERRMODE_EXCEPTION);
         $conn->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
     } catch (PDOException $e) {
-        if (basename($_SERVER['PHP_SELF']) !== 'setup.php') {
-            die("Gagal menyambung ke database SinergiCare. Hubungi Admin atau hapus file db_credentials.json untuk setup ulang. Error: " . htmlspecialchars($e->getMessage()));
+            if (basename($_SERVER['PHP_SELF']) !== 'setup.php') {
+                die("Gagal menyambung ke database SinergiCare. Hubungi Admin atau hapus file db_credentials.json untuk setup ulang. Error: " . htmlspecialchars($e->getMessage()));
+            }
         }
     }
-}
-?>
+// Pastikan baris ke-49 ini adalah baris paling terakhir dari file, jangan ada enter lagi ke bawah.
