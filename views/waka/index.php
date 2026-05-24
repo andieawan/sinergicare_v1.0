@@ -103,7 +103,14 @@
                                 </td>
                                 <td class="py-3 px-3 max-w-sm font-medium text-slate-700" title="<?php echo htmlspecialchars($sp['alasan_sp'], ENT_QUOTES, 'UTF-8'); ?>">
                                     <?php echo htmlspecialchars($sp['alasan_sp'], ENT_QUOTES, 'UTF-8'); ?>
-                                    <div class="text-[9px] text-slate-400 font-normal mt-0.5">Dibuat oleh: 👤 <?php echo htmlspecialchars($sp['diterbitkan_oleh'], ENT_QUOTES, 'UTF-8'); ?></div>
+                                    <div class="text-[9px] text-slate-400 font-normal mt-0.5">
+                                        Dibuat oleh: 👤
+                                        <?php
+                                        // BUG FIX #7: Sebelumnya menampilkan $sp['diterbitkan_oleh'] (integer ID),
+                                        // sekarang menggunakan $sp['nama_pejabat'] dari hasil JOIN di pages/waka.php
+                                        echo htmlspecialchars($sp['nama_pejabat'] ?? 'Tidak diketahui', ENT_QUOTES, 'UTF-8');
+                                        ?>
+                                    </div>
                                 </td>
                                 <td class="py-3 px-3 text-center">
                                     <?php if ($sp['is_approved']): ?>

@@ -121,6 +121,32 @@
     </div>
 </div>
 
+<!-- Modal Import Staf -->
+<div id="modal_import_staf" class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200">
+        <div class="flex justify-between items-center border-b border-slate-100 pb-3 mb-4">
+            <h3 class="text-sm font-bold text-slate-800 tracking-tight">📥 Impor Massal Data Staf</h3>
+            <button type="button" onclick="closeModalImportStaf()" class="text-slate-400 hover:text-slate-600 text-sm">✕</button>
+        </div>
+        <form action="<?= $web_base ?>/modules/admin/import_staf.php" method="POST" enctype="multipart/form-data" class="space-y-4">
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 text-[11px] text-slate-600 space-y-1">
+                <p class="font-bold text-slate-700">💡 Panduan Standar Dokumen:</p>
+                <p>Kolom yang diperlukan: <code class="bg-slate-200 px-1 py-0.5 rounded font-mono text-indigo-600">nama, email, username, password, roles</code></p>
+                <p>Format file: <strong>.xlsx (Excel)</strong>. Maksimal 5MB.</p>
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Pilih Berkas (.xlsx)</label>
+                <input type="file" name="file_excel" accept=".xlsx" required 
+                       class="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:border-indigo-500 file:mr-3 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+            </div>
+            <div class="flex justify-end space-x-2 pt-2">
+                <button type="button" onclick="closeModalImportStaf()" class="px-3 py-1.5 text-xs font-semibold text-slate-500 hover:text-slate-700">Batal</button>
+                <button type="submit" class="bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs px-4 py-2 rounded-xl shadow-sm tracking-wide">🚀 Mulai Unggah</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
 // CONTROLLER MODAL KELAS
 function bukaModalTambahKelas() {
@@ -182,17 +208,22 @@ function bukaModalEditStaf(id, nama, email, username, roles) {
     toggleModal('modal_staf', true);
 }
 function closeModalStaf() { toggleModal('modal_staf', false); }
-// CONTROLLER MODAL IMPOR SISWA
-function bukaModalImportSiswa() {
-    toggleModal('modal_import_siswa', true);
-}
-function closeModalImportSiswa() {
-    toggleModal('modal_import_siswa', false);
-}
-// UTILITY TOGGLE CLASS
+
+// BUG FIX #10: CONTROLLER MODAL IMPORT SISWA
+// Sebelumnya langsung classList.remove('hidden') tanpa menambahkan 'flex'
+// sehingga modal tidak centered. Sekarang pakai toggleModal() yang handle keduanya.
+function bukaModalImportSiswa() { toggleModal('modal_import_siswa', true); }
+function closeModalImportSiswa() { toggleModal('modal_import_siswa', false); }
+
+// BUG FIX #10: CONTROLLER MODAL IMPORT STAF (fungsi ini sebelumnya tidak ada)
+function bukaModalImportStaf() { toggleModal('modal_import_staf', true); }
+function closeModalImportStaf() { toggleModal('modal_import_staf', false); }
+
+// UTILITY: Toggle hidden + flex sekaligus
 function toggleModal(id, show) {
     const el = document.getElementById(id);
-    if (show) { el.classList.remove('hidden'); el.classList.add('flex'); } 
-    else { el.classList.add('hidden'); el.classList.remove('flex'); }
+    if (!el) return;
+    if (show) { el.classList.remove('hidden'); el.classList.add('flex'); }
+    else       { el.classList.add('hidden');  el.classList.remove('flex'); }
 }
 </script>

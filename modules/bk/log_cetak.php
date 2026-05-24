@@ -1,11 +1,18 @@
 <?php
+// modules/bk/log_cetak.php
+// BUG FIX #5 & #8:
+// - Sebelumnya CREATE TABLE 'log_cetak_surat' secara on-the-fly,
+//   padahal setup.php sudah membuat tabel 'log_surat' dengan struktur yang tepat.
+// - Dua file identik (modules/bk/ dan modules/cetak_surat/) digabung logikanya ke satu.
+// - Sekarang INSERT ke 'log_surat' sesuai schema dari setup.php.
+//   Kolom log_surat: student_id, tipe_surat, tanggal_surat, jam_surat, dibuat_oleh, created_at
+
 require_once __DIR__ . '/../../config/config.php';
 require_once __DIR__ . '/../../core/auth.php';
 require_once __DIR__ . '/../../core/functions.php';
 
 requireLogin();
 
-// Check permission
 if (!hasRole(['super_admin', 'admin', 'bk'])) {
     http_response_code(403);
     header('Content-Type: application/json');
@@ -15,77 +22,45 @@ if (!hasRole(['super_admin', 'admin', 'bk'])) {
 header('Content-Type: application/json');
 
 try {
-    // Get current user
-    $user_id = currentUserId();
-    if (!$user_id) {
-        die(json_encode(['status' => 'error', 'message' => 'User not found']));
-    }
-
+    $user_id    = currentUserId();
     $student_id = isset($_POST['student_id']) ? (int)$_POST['student_id'] : 0;
-    $tipe_surat = isset($_POST['tipe_surat']) ? trim($_POST['tipe_surat']) : '';
-    
-    // Optional fields
-    $tanggal = isset($_POST['tanggal']) ? trim($_POST['tanggal']) : NULL;
-    $jam = isset($_POST['jam']) ? trim($_POST['jam']) : NULL;
+    $tipe_surat = isset($_POST['tipe_surat'])  ? trim($_POST['tipe_surat'])  : '';
+    $tanggal    = !empty($_POST['tanggal'])    ? trim($_POST['tanggal'])    : null;
+    $jam        = !empty($_POST['jam'])        ? trim($_POST['jam'])        : null;
+
+    if (!$user_id) {
+        die(json_encode(['status' => 'error', 'message' => 'User session tidak valid']));
+    }
 
     if ($student_id <= 0 || empty($tipe_surat)) {
-        die(json_encode(['status' => 'error', 'message' => 'Invalid parameters']));
+        die(json_encode(['status' => 'error', 'message' => 'Parameter tidak valid']));
     }
 
-    // Create table if not exists
-    $create_table_sql = "
-        CREATE TABLE IF NOT EXISTS log_cetak_surat (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            student_id INT NOT NULL,
-            tipe_surat VARCHAR(50) NOT NULL,
-            tanggal_surat DATE,
-            jam_surat TIME,
-            user_id INT,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE,
-            KEY idx_student (student_id),
-            KEY idx_created (created_at)
-        )
-    ";
-    
-    try {
-        $conn->exec($create_table_sql);
-    } catch (PDOException $e) {
-        // Table may already exist, ignore error
+    // Pastikan siswa ada
+    $stmt_check = $conn->prepare("SELECT id FROM students WHERE id = ? LIMIT 1");
+    $stmt_check->execute([$student_id]);
+    if (!$stmt_check->fetch()) {
+        die(json_encode(['status' => 'error', 'message' => 'Siswa tidak ditemukan']));
     }
 
-    // Insert log
+    // INSERT ke tabel log_surat (sudah dibuat di setup.php)
+    // Kolom: student_id, tipe_surat, tanggal_surat, jam_surat, dibuat_oleh
     $stmt = $conn->prepare("
-        INSERT INTO log_cetak_surat (student_id, tipe_surat, tanggal_surat, jam_surat, user_id)
-        VALUES (?, ?, ?, ?, ?)
+        INSERT INTO log_surat (student_id, tipe_surat, tanggal_surat, jam_surat, dibuat_oleh, created_at)
+        VALUES (?, ?, ?, ?, ?, NOW())
     ");
-    
-    $stmt->execute([
-        $student_id,
-        $tipe_surat,
-        $tanggal,
-        $jam,
-        $user_id
-    ]);
-
-    $log_id = $conn->lastInsertId();
+    $stmt->execute([$student_id, $tipe_surat, $tanggal, $jam, $user_id]);
 
     echo json_encode([
-        'status' => 'success',
+        'status'  => 'success',
         'message' => 'Log cetak surat berhasil tercatat',
-        'log_id' => $log_id
+        'log_id'  => (int)$conn->lastInsertId()
     ]);
 
 } catch (PDOException $e) {
     http_response_code(500);
-    echo json_encode([
-        'status' => 'error',
-        'message' => 'Database error: ' . $e->getMessage()
-    ]);
+    echo json_encode(['status' => 'error', 'message' => 'Database error: ' . $e->getMessage()]);
 } catch (Exception $e) {
     http_response_code(500);
-    echo json_encode([
-        'status' => 'error',
-        'message' => 'Error: ' . $e->getMessage()
-    ]);
+    echo json_encode(['status' => 'error', 'message' => 'Error: ' . $e->getMessage()]);
 }
