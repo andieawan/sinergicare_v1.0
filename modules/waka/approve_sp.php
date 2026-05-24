@@ -51,6 +51,16 @@ if (isset($_GET['id']) && isset($conn) && $conn !== null) {
         // Kueri 3: Jalankan rekalkulator radar siswa agar status warna radar diperbarui secara real-time
         hitungUlangRadarSiswa($conn, $student_id);
 
+        // Kueri 4: PERBAIKAN LOGIKA - Set paksa status_warna ke 'merah' jika siswa memiliki SP aktif
+        // Langkah ini mencegah siswa kembali ke zona hijau/kuning secara keliru karena fungsi 
+        // hitungUlangRadarSiswa murni hanya menghitung jumlah bobot rekam insiden di tabel terkait.
+        $stmt_force_red = $conn->prepare("
+            UPDATE students 
+            SET status_warna = 'merah' 
+            WHERE id = ? AND status_sp IN ('sp_1', 'sp_2', 'sp_3')
+        ");
+        $stmt_force_red->execute([$student_id]);
+
         // Komit seluruh rangkaian kueri ke dalam database jika aman tanpa interupsi
         $conn->commit();
 

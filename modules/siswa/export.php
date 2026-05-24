@@ -1,14 +1,19 @@
 <?php
 require_once __DIR__ . '/../../config/config.php';
 require_once __DIR__ . '/../../core/auth.php';
+// Tambahkan core/flash.php agar fungsi setFlash() dapat digunakan
+require_once __DIR__ . '/../../core/flash.php';
 
 requireLogin();
 requireRole(['super_admin', 'admin']);
 
+// PERBAIKAN SEKURITAS: Mengganti die() mentah dengan penanganan anggun via session flash
 if (file_exists(__DIR__ . '/../../vendor/autoload.php')) {
     require_once __DIR__ . '/../../vendor/autoload.php';
 } else {
-    die("Pustaka PhpSpreadsheet belum terinstal di server. Silakan jalankan perintah 'composer require phpoffice/phpspreadsheet' terlebih dahulu.");
+    setFlash('error', '⚠️ Gagal mengekspor data! Fitur integrasi Excel belum dikonfigurasi sepenuhnya di server (Pustaka vendor eksternal tidak ditemukan).');
+    header("Location: /pages/admin.php");
+    exit();
 }
 
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -76,9 +81,7 @@ if (isset($conn) && $conn !== null) {
                 ? date('d-m-Y', strtotime($s['probation_end']))
                 : '-';
 
-            // BUG FIX 6: status_sp kini VARCHAR — bandingkan ke string 'tidak_ada',
-            // bukan ke integer. Sebelumnya kolom INT sehingga != 'tidak_ada' selalu true
-            // dan semua baris tampil "Tidak Ada" di Excel.
+            // BUG FIX 6: status_sp kini VARCHAR — bandingkan ke string 'tidak_ada'
             $status_sp_label = ($s['status_sp'] !== 'tidak_ada')
                 ? strtoupper(str_replace('_', ' ', $s['status_sp']))
                 : 'Tidak Ada';
@@ -127,8 +130,14 @@ if (isset($conn) && $conn !== null) {
         exit();
 
     } catch (Exception $e) {
-        die("Sistem mendeteksi kegagalan ekspor dokumen kerja Excel: " . $e->getMessage());
+        // PERBAIKAN: Ganti die() teknis dengan redirect + flash error
+        setFlash('error', '⚠️ Sistem mendeteksi kegagalan saat menyusun lembar kerja Excel: ' . $e->getMessage());
+        header("Location: /pages/admin.php");
+        exit();
     }
 } else {
-    die("Koneksi ke basis data utama SinergiCare tidak tersedia.");
+    // PERBAIKAN: Penanganan ketika objek koneksi bermasalah
+    setFlash('error', '⚠️ Koneksi ke basis data utama SinergiCare sedang tidak tersedia.');
+    header("Location: /pages/admin.php");
+    exit();
 }
