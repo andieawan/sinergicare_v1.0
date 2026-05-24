@@ -8,26 +8,15 @@ requireRole(['super_admin', 'admin', 'bk']);
 
 $user_id_login = currentUserId();
 
-$all_students        = []; // BUG FIX: SEMUA siswa untuk fitur cetak utama
 $students_attention  = [];
+$all_students        = []; // FEATURE: Semua siswa untuk cetak surat
 $active_consequences = [];
 $letter_logs         = [];
 $staf_list           = [];
 
 if (isset($conn) && $conn !== null) {
     try {
-        // FITUR BARU: Query SEMUA siswa untuk cetak surat (tidak dibatasi status)
-        $stmt_all = $conn->query("
-            SELECT s.*, c.nama_kelas 
-            FROM students s
-            LEFT JOIN classes c ON s.class_id = c.id
-            ORDER BY s.nama ASC
-        ");
-        if ($stmt_all) {
-            $all_students = $stmt_all->fetchAll(PDO::FETCH_ASSOC);
-        }
-
-        // Siswa dalam pantauan (status kuning/merah)
+        // Query 1: Siswa dalam pantauan (kuning/merah)
         $stmt_stu = $conn->query("
             SELECT s.*, c.nama_kelas 
             FROM students s
@@ -37,6 +26,18 @@ if (isset($conn) && $conn !== null) {
         ");
         if ($stmt_stu) {
             $students_attention = $stmt_stu->fetchAll(PDO::FETCH_ASSOC);
+        }
+
+        // FEATURE: Query 2 - BARU: Semua siswa untuk cetak surat (aktif saja)
+        $stmt_all = $conn->query("
+            SELECT s.*, c.nama_kelas 
+            FROM students s
+            LEFT JOIN classes c ON s.class_id = c.id
+            WHERE s.status = 'aktif'
+            ORDER BY c.nama_kelas ASC, s.nama ASC
+        ");
+        if ($stmt_all) {
+            $all_students = $stmt_all->fetchAll(PDO::FETCH_ASSOC);
         }
 
         // BUG FIX: JOIN staf_sekolah untuk tampilkan nama penanggung_jawab
@@ -73,8 +74,8 @@ if (isset($conn) && $conn !== null) {
         }
 
     } catch (Exception $e) {
-        $all_students        = [];
         $students_attention  = [];
+        $all_students        = [];
         $active_consequences = [];
         $letter_logs         = [];
         $staf_list           = [];
