@@ -40,6 +40,16 @@ require_once __DIR__ . '/../../core/functions.php';
             </a>
             <?php endif; ?>
 
+            <!-- NEW: Menu Cetak Surat Cepat untuk Admin & BK -->
+            <?php if (hasRole(['super_admin', 'admin', 'bk'])): ?>
+            <div class="pt-3 border-t border-slate-700 mt-3">
+                <p class="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Cetak Dokumen</p>
+                <a href="/pages/cetak_surat.php" class="flex items-center px-3 py-2.5 text-sm font-medium rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-colors duration-150 group">
+                    <span class="mr-3 text-base group-hover:scale-110 transition-transform duration-150">🖨️</span> Cetak Surat
+                </a>
+            </div>
+            <?php endif; ?>
+
             <?php if (hasRole(['super_admin', 'admin'])): ?>
             <p class="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest pt-5 mb-2">Pengaturan</p>
             <a href="/pages/admin.php" class="flex items-center px-3 py-2.5 text-sm font-medium rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-colors duration-150 group">
