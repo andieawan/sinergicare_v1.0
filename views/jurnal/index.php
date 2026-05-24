@@ -94,7 +94,7 @@
                                             <?php echo htmlspecialchars($log['catatan'], ENT_QUOTES, 'UTF-8'); ?>
                                         </div>
                                         <div class="text-[9px] text-slate-400 font-medium mt-0.5">
-                                            📍 <?php echo htmlspecialchars($log['lokasi_kejadian'], ENT_QUOTES, 'UTF-8'); ?> | 📣 Pelapor: <?php echo htmlspecialchars($log['nama_pelapor'] ?? 'Sistem', ENT_QUOTES, 'UTF-8'); ?>
+                                            📍 <?php echo htmlspecialchars($log['lokasi_kejadian'] ?? '', ENT_QUOTES, 'UTF-8'); ?> | 📣 Pelapor: <?php echo htmlspecialchars($log['nama_pelapor'] ?? 'Sistem', ENT_QUOTES, 'UTF-8'); ?>
                                         </div>
                                     </td>
                                     <td class="py-3 px-3 text-center">
