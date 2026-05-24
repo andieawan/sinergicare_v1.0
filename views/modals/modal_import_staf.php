@@ -7,7 +7,7 @@
             </button>
         </div>
         
-        <form action="../modules/admin/import_staf.php" method="POST" enctype="multipart/form-data">
+        <form action="<?= $web_base ?>/modules/admin/import_staf.php" method="POST" enctype="multipart/form-data">
             <div class="mb-4">
                 <label class="block text-sm font-medium text-gray-700 mb-2">Pilih File Excel (.xlsx)</label>
                 <input type="file" name="file_excel" accept=".xlsx" required 

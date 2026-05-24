@@ -4,7 +4,7 @@
         <p class="text-xs text-slate-400">Kelola konfigurasi kelas, kategori pelanggaran, tingkat risiko, serta kredensial akun staf sekolah.</p>
     </div>
     <div class="flex items-center gap-2">
-        <a href="../modules/siswa/export_template_siswa.php" class="bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-sm transition-colors flex items-center gap-2">
+        <a href="<?= $web_base ?>/modules/siswa/export_template_siswa.php" class="bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-sm transition-colors flex items-center gap-2">
             📄 Template Siswa
         </a>
         <button onclick="document.getElementById('modal_import_siswa').classList.remove('hidden')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-sm transition-colors flex items-center gap-2">
@@ -103,7 +103,7 @@
             <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
                 <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider">👤 Manajemen Akun Staf</h3>
                 <div class="flex items-center gap-2">
-                    <a href="../modules/admin/export_template_staf.php" title="Unduh Template Excel Staf" class="text-xs text-slate-500 hover:text-slate-800 font-bold">
+                    <a href="<?= $web_base ?>/modules/admin/export_template_staf.php" title="Unduh Template Excel Staf" class="text-xs text-slate-500 hover:text-slate-800 font-bold">
                         📄 Template
                     </a>
                     <span class="text-slate-200">|</span>
