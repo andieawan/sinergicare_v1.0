@@ -54,26 +54,23 @@ if (isset($conn) && $conn !== null) {
             $active_consequences = $stmt_con->fetchAll(PDO::FETCH_ASSOC);
         }
 
-        // BUG FIX #1 & #4 & #20:
-        // Sebelumnya query FROM log_surat dengan kolom 'dibuat_oleh',
-        // tapi log_cetak.php INSERT ke 'log_cetak_surat' dengan kolom 'user_id'.
-        // Diperbaiki: query ke log_cetak_surat dengan kolom yang benar.
-        // Jika tabel log_cetak_surat belum ada (baru pertama jalan), tangani gracefully.
+        // PERBAIKAN: Mengubah target tabel ke log_surat sesuai berkas setup.php
+        // Serta memetakan kolom dibuat_oleh menjadi alias user_id agar mencegah error data
         try {
             $stmt_log = $conn->query("
-                SELECT lcs.*, s.nama AS nama_siswa, c.nama_kelas,
-                       lcs.tanggal_surat, lcs.jam_surat
-                FROM log_cetak_surat lcs
-                JOIN students s ON lcs.student_id = s.id
+                SELECT ls.*, ls.dibuat_oleh AS user_id, s.nama AS nama_siswa, c.nama_kelas,
+                       ls.tanggal_surat, ls.jam_surat
+                FROM log_surat ls
+                JOIN students s ON ls.student_id = s.id
                 LEFT JOIN classes c ON s.class_id = c.id
-                WHERE lcs.tipe_surat = 'panggilan_ortu'
-                ORDER BY lcs.id DESC LIMIT 10
+                WHERE ls.tipe_surat = 'panggilan_ortu'
+                ORDER BY ls.id DESC LIMIT 10
             ");
             if ($stmt_log) {
                 $letter_logs = $stmt_log->fetchAll(PDO::FETCH_ASSOC);
             }
         } catch (Exception $e) {
-            // Tabel log_cetak_surat belum ada — abaikan, tampilkan kosong
+            // Tabel log_surat belum ada atau belum bermigrasi — abaikan, tampilkan kosong
             $letter_logs = [];
         }
 

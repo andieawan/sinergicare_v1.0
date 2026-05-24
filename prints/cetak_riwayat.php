@@ -1,17 +1,13 @@
 <?php
+// cetak_riwayat.php (CETAK HISTORI PELANGGARAN SISWA)
 // PERBAIKAN PATH: Tambahkan ../ karena file dimasukkan ke dalam folder prints/
 require_once '../config/config.php';
+require_once '../core/auth.php';
 
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+// Proteksi Akses Sesi - Menggunakan fungsi otentikasi terpusat sistem
+requireLogin();
 
-// Pastikan user sudah login
-if (!isset($_SESSION['user_id'])) {
-    die("Akses ditolak. Silakan login terlebih dahulu.");
-}
-
-$student_id = isset($_GET['student_id']) ? $_GET['student_id'] : 0;
+$student_id = isset($_GET['student_id']) ? (int)$_GET['student_id'] : 0;
 $siswa = null;
 $riwayat = [];
 
@@ -60,7 +56,7 @@ if (!$siswa) {
         </div>
 
         <div class="text-center border-b-2 border-slate-900 pb-4 mb-6 relative flex items-center justify-center">
-            <img src="../assets/logo_sekolah.png" class="absolute left-0 top-0 h-14 w-14 object-contain" onerror="this.style.display='none'">
+            <img src="../uploads/logo.png" class="absolute left-0 top-0 h-14 w-14 object-contain" onerror="this.style.display='none'">
             <div>
                 <h1 class="text-xl font-extrabold tracking-tight uppercase">SinergiCare Sistem Radar Karakter v2</h1>
                 <p class="text-xs font-medium text-slate-500 mt-0.5">Laporan Komparatif Kedisiplinan & Penegakan Aturan Siswa SMK</p>

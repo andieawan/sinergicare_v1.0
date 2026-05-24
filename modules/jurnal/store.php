@@ -22,14 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($conn) && $conn !== null) {
     }
 
     try {
-        // BUG FIX #12:
-        // Sebelumnya: explode(' - ', $student_info) lalu ambil $parts[0] sebagai NISN.
-        // Jika user mengetik manual tanpa memilih dari datalist (format "NISN - Nama [Kelas]"),
-        // $parts[0] bisa berisi nama bukan NISN → query gagal dengan pesan membingungkan.
-        // 
-        // Perbaikan: Validasi format string terlebih dahulu — harus mengandung ' - ' separator.
-        // Format yang diharapkan dari datalist: "0012345678 - Budi Santoso [XII DKV 1]"
-
+        // Validasi format penulisan dari datalist autocomplete
         if (strpos($student_info, ' - ') === false) {
             setFlash('error', '⚠️ Identitas siswa tidak valid! Pilih dari daftar rekomendasi, jangan ketik manual.');
             header("Location: /pages/jurnal.php");
@@ -39,9 +32,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($conn) && $conn !== null) {
         $parts = explode(' - ', $student_info);
         $nisn  = trim($parts[0] ?? '');
 
-        // Validasi NISN: harus berupa angka dan tidak kosong
-        if (empty($nisn) || !ctype_digit($nisn)) {
-            setFlash('error', '⚠️ Format NISN tidak valid! Pastikan Anda memilih siswa dari daftar rekomendasi yang tersedia.');
+        // PERBAIKAN: Menambahkan validasi panjang karakter (wajib 10 digit) serta memperjelas pesan error
+        if (empty($nisn) || !ctype_digit($nisn) || strlen($nisn) !== 10) {
+            setFlash('error', '⚠️ Format NISN tidak valid! NISN harus berupa 10 digit angka murni (contoh: 0012345678). Silakan pilih ulang dari daftar rekomendasi.');
             header("Location: /pages/jurnal.php");
             exit();
         }
@@ -52,7 +45,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($conn) && $conn !== null) {
         $student = $stmt_check->fetch(PDO::FETCH_ASSOC);
 
         if (!$student) {
-            setFlash('error', '⚠️ Siswa dengan NISN ' . htmlspecialchars($nisn) . ' tidak ditemukan! Pastikan Anda memilih dari daftar rekomendasi.');
+            // Mengubah pesan error agar lebih deskriptif ketika database mengembalikan nilai kosong
+            setFlash('error', '⚠️ Siswa dengan NISN ' . htmlspecialchars($nisn) . ' tidak ditemukan di sistem! Pastikan data rekomendasi belum kedaluwarsa.');
             header("Location: /pages/jurnal.php");
             exit();
         }
