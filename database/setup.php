@@ -66,6 +66,8 @@ try {
         FOREIGN KEY (`role_id`) REFERENCES `roles`(`id`) ON DELETE CASCADE
     ) ENGINE=InnoDB");
 
+    // BUG FIX 1: status_sp diubah dari INT ke VARCHAR(20) DEFAULT 'tidak_ada'
+    // agar konsisten dengan seluruh kode aplikasi yang memperlakukannya sebagai string
     $pdo->exec("CREATE TABLE `students` (
         `id` INT AUTO_INCREMENT PRIMARY KEY,
         `nisn` VARCHAR(20) NOT NULL UNIQUE,
@@ -73,7 +75,7 @@ try {
         `class_id` INT NULL,
         `status_warna` VARCHAR(20) NOT NULL DEFAULT 'hijau',
         `level_eskalasi` VARCHAR(50) NOT NULL DEFAULT 'teguran',
-        `status_sp` INT NOT NULL DEFAULT 0,
+        `status_sp` VARCHAR(20) NOT NULL DEFAULT 'tidak_ada',
         `is_probation` INT NOT NULL DEFAULT 0,
         `probation_end` DATE NULL,
         FOREIGN KEY (`class_id`) REFERENCES `classes`(`id`) ON DELETE SET NULL
@@ -112,28 +114,27 @@ try {
         `student_id` INT NOT NULL,
         `deskripsi_tugas` TEXT NOT NULL,
         `penanggung_jawab` INT NOT NULL,
-        `status_tugas` VARCHAR(20) NOT NULL DEFAULT 'pending',
+        `status_tugas` VARCHAR(20) NOT NULL DEFAULT 'proses',
         `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         `completed_at` TIMESTAMP NULL,
-        FOREIGN KEY (`student_id`)     REFERENCES `students`(`id`)     ON DELETE CASCADE,
-        FOREIGN KEY (`penanggung_jawab`) REFERENCES `staf_sekolah`(`id`) ON DELETE CASCADE
+        FOREIGN KEY (`student_id`)       REFERENCES `students`(`id`)      ON DELETE CASCADE,
+        FOREIGN KEY (`penanggung_jawab`) REFERENCES `staf_sekolah`(`id`)  ON DELETE CASCADE
     ) ENGINE=InnoDB");
 
-    // BUG FIX: Tabel sp_records kini termasuk 'alasan_sp' sebagai NOT NULL
-    // di INSERT sebelumnya tidak disertakan sehingga query gagal.
+    // BUG FIX 2: tingkat_sp diubah dari INT ke VARCHAR(20)
+    // agar konsisten dengan nilai string 'sp_1', 'sp_2', 'sp_3' yang dipakai di seluruh kode
     $pdo->exec("CREATE TABLE `sp_records` (
         `id` INT AUTO_INCREMENT PRIMARY KEY,
         `student_id` INT NOT NULL,
-        `tingkat_sp` INT NOT NULL,
+        `tingkat_sp` VARCHAR(20) NOT NULL,
         `alasan_sp` TEXT NOT NULL,
         `diterbitkan_oleh` INT NOT NULL,
         `is_approved` INT NOT NULL DEFAULT 0,
         `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (`student_id`)      REFERENCES `students`(`id`)     ON DELETE CASCADE,
+        FOREIGN KEY (`student_id`)       REFERENCES `students`(`id`)     ON DELETE CASCADE,
         FOREIGN KEY (`diterbitkan_oleh`) REFERENCES `staf_sekolah`(`id`) ON DELETE CASCADE
     ) ENGINE=InnoDB");
 
-    // BUG FIX: Tabel log_surat ditambahkan ke setup agar api/log_cetak.php bisa berjalan
     $pdo->exec("CREATE TABLE `log_surat` (
         `id` INT AUTO_INCREMENT PRIMARY KEY,
         `student_id` INT NOT NULL,
@@ -172,7 +173,6 @@ try {
     $stmt = $pdo->prepare("INSERT INTO `violation_categories` (id, nama_kejadian, bobot_risiko) VALUES (?, ?, ?)");
     foreach ($v_categories as $vc) $stmt->execute($vc);
 
-    // Password disimpan plain-text untuk kemudahan dev; gunakan password_hash di produksi
     $staf = [
         ['1', 'Administrator Utama', 'super@smk.sch.id', 'admin',  'admin123', 'super_admin', '2026-05-22 18:31:34'],
         ['2', 'Budi Santoso, M.Pd',  'budi@smk.sch.id',  'budi',   'budi',     'bk',          '2026-05-22 20:30:13'],
@@ -189,11 +189,12 @@ try {
     $stmt    = $pdo->prepare("INSERT INTO `user_roles` (id, user_id, role_id) VALUES (?, ?, ?)");
     foreach ($u_roles as $ur) $stmt->execute($ur);
 
+    // BUG FIX 1 (lanjutan): seed status_sp sekarang pakai string 'tidak_ada' bukan integer 0
     $students = [
-        ['1', '202601', 'Bambang tole', '1', 'kuning', 'konseling', '0', '0', null],
-        ['2', '202602', 'Bambang Paas', '2', 'hijau',  'teguran',   '0', '0', null],
-        ['3', '202603', 'Bambang Pamas','3', 'merah',  'teguran',   '1', '0', null],
-        ['4', '202670', 'Adi Pratama',  '1', 'hijau',  'teguran',   '0', '0', null],
+        ['1', '202601', 'Bambang tole', '1', 'kuning', 'konseling',  'tidak_ada', '0', null],
+        ['2', '202602', 'Bambang Paas', '2', 'hijau',  'teguran',    'tidak_ada', '0', null],
+        ['3', '202603', 'Bambang Pamas','3', 'merah',  'teguran',    'sp_1',      '0', null],
+        ['4', '202670', 'Adi Pratama',  '1', 'hijau',  'teguran',    'tidak_ada', '0', null],
     ];
     $stmt = $pdo->prepare("INSERT INTO `students` (id, nisn, nama, class_id, status_warna, level_eskalasi, status_sp, is_probation, probation_end) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
     foreach ($students as $st) $stmt->execute($st);
@@ -215,14 +216,13 @@ try {
     $stmt = $pdo->prepare("INSERT INTO `journals` (id, student_id, user_id, category_id, catatan, lokasi_kejadian, tanggal_kejadian, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
     foreach ($journals as $j) $stmt->execute($j);
 
-    // BUG FIX: Seed sp_records sekarang menyertakan kolom 'alasan_sp'
+    // BUG FIX 2 (lanjutan): seed tingkat_sp sekarang pakai string 'sp_1' bukan integer
     $sp_records = [
-        ['1', '3', '1', 'Diberikan penindakan disiplin bertahap Surat Peringatan Tingkat 1 karena akumulasi kasus kritis pada Zona Merah.', '1', '2026-05-22 22:37:20', '0'],
+        ['1', '3', 'sp_1', 'Diberikan penindakan disiplin bertahap Surat Peringatan Tingkat 1 karena akumulasi kasus kritis pada Zona Merah.', '1', '2026-05-22 22:37:20', '0'],
     ];
     $stmt = $pdo->prepare("INSERT INTO `sp_records` (id, student_id, tingkat_sp, alasan_sp, diterbitkan_oleh, created_at, is_approved) VALUES (?, ?, ?, ?, ?, ?, ?)");
     foreach ($sp_records as $sp) $stmt->execute($sp);
 
-    // Simpan kredensial DB ke file konfigurasi
     $credentials = json_encode([
         'host'     => $host,
         'username' => $user,

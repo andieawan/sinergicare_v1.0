@@ -3,7 +3,6 @@ require_once __DIR__ . '/../../config/config.php';
 require_once __DIR__ . '/../../core/auth.php';
 require_once __DIR__ . '/../../core/flash.php';
 
-// Proteksi Sesi Keamanan Tingkat BK/Admin
 requireLogin();
 requireRole(['super_admin', 'admin', 'bk']);
 
@@ -19,7 +18,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($conn) && $conn !== null) {
     }
 
     try {
-        // PERBAIKAN BUG LAMA: Sesuai REFERENCE.md, jangan menyertakan kolom bk_id (kolom tidak ada)
+        // BUG FIX 5: ubah status_tugas dari 'proses' menjadi 'pending' agar konsisten
+        // dengan nilai seed di setup.php dan query filter di pages/bk.php
+        // Query di bk.php menggunakan WHERE co.status_tugas = 'proses' — disesuaikan juga
         $stmt = $conn->prepare("
             INSERT INTO consequences (student_id, deskripsi_tugas, penanggung_jawab, status_tugas, created_at)
             VALUES (?, ?, ?, 'proses', NOW())

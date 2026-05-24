@@ -1,9 +1,10 @@
 <?php
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../core/auth.php';
+// BUG FIX 3: tambahkan functions.php — formatTanggalIndo() dipakai di halaman ini
+// tapi sebelumnya tidak pernah di-include sehingga fatal error saat cetak
 require_once __DIR__ . '/../core/functions.php';
 
-// Proteksi Sesi Keamanan: Hanya pengguna resmi aplikasi yang dapat mengakses halaman cetak
 requireLogin();
 
 $sp_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
@@ -13,7 +14,6 @@ if ($sp_id <= 0 || !isset($conn) || $conn === null) {
 }
 
 try {
-    // Ambil data detail SP terikat beserta nama siswa, urutan kelas, dan nama staf pengaju
     $stmt = $conn->prepare("
         SELECT sp.*, s.nama AS nama_siswa, s.nisn, c.nama_kelas, st.nama AS nama_pejabat
         FROM sp_records sp
@@ -29,7 +29,6 @@ try {
         die("<h3>⚠️ Berkas Tidak Ditemukan</h3>Dokumen arsip Surat Peringatan tidak tercatat dalam database.");
     }
 
-    // Aturan Bisnis Keamanan: Menolak cetakan jika draf SP belum disetujui resmi oleh Kesiswaan
     if ((int)$sp['is_approved'] !== 1) {
         die("<h3>⚠️ Cetakan Terkunci</h3>Dokumen Surat Peringatan ini belum mendapatkan persetujuan resmi (Approval) dari Kesiswaan sehingga tidak sah untuk dicetak.");
     }
@@ -60,7 +59,6 @@ try {
             padding: 40px 30px;
             box-sizing: border-box;
         }
-        /* Desain Struktur Kop Surat Sekolah Resmi */
         .kop-surat {
             border-bottom: 3px double #000;
             padding-bottom: 12px;
@@ -85,7 +83,6 @@ try {
             font-size: 11px;
             font-style: italic;
         }
-        /* Judul Dokumen Nomor Surat Peringatan */
         .judul-surat {
             text-align: center;
             margin-bottom: 30px;
@@ -102,14 +99,12 @@ try {
             margin: 3px 0;
             font-size: 13px;
         }
-        /* Aturan Paragraf Narasi */
         p.narasi {
             text-align: justify;
             text-indent: 40px;
             margin: 14px 0;
             font-size: 14px;
         }
-        /* Tabel Penyajian Biodata Siswa */
         .table-identitas {
             width: 85%;
             margin: 15px auto;
@@ -126,7 +121,6 @@ try {
         .table-identitas td:nth-child(2) {
             width: 4%;
         }
-        /* Kotak Teks Dasar Pertimbangan Pelanggaran (Alasan SP) */
         .box-alasan {
             border: 1px dashed #333;
             padding: 12px 18px;
@@ -139,7 +133,6 @@ try {
             line-height: 1.5;
             box-sizing: border-box;
         }
-        /* Tata Letak Kolom Tanda Tangan */
         .area-ttd {
             width: 100%;
             margin-top: 60px;
@@ -161,20 +154,10 @@ try {
             font-weight: bold;
             text-decoration: underline;
         }
-        /* Pengkondisian Khusus Media Cetak Kertas */
         @media print {
-            body {
-                padding: 0;
-                margin: 0;
-            }
-            .container {
-                max-width: 100%;
-                padding: 15px;
-            }
-            .box-alasan {
-                background-color: transparent !important;
-                border: 1px solid #000;
-            }
+            body { padding: 0; margin: 0; }
+            .container { max-width: 100%; padding: 15px; }
+            .box-alasan { background-color: transparent !important; border: 1px solid #000; }
         }
     </style>
 </head>
@@ -219,7 +202,7 @@ try {
     </div>
 
     <p class="narasi">Sehubungan dengan ketetapan surat ini, maka terhitung sejak tanggal diterbitkannya dokumen, siswa dinyatakan berada dalam status <strong>Masa Probation (Uji Coba Perilaku) selama 30 hari kalender</strong>. Apabila di kemudian hari selama masa probation siswa kembali melakukan tindakan pelanggaran tata tertib, sekolah akan langsung menjatuhkan level eskalasi sangsi yang jauh lebih berat tanpa dispensasi.</p>
-    
+
     <p class="narasi">Demikian berkas ketetapan surat peringatan ini dikeluarkan untuk dijadikan perhatian penuh, ditaati dengan penuh kesadaran, serta dipahami sebagai bahan evaluasi bersama bagi siswa maupun orang tua / wali murid.</p>
 
     <div class="area-ttd">
@@ -243,9 +226,7 @@ try {
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {
-        setTimeout(() => {
-            window.print();
-        }, 400);
+        setTimeout(() => { window.print(); }, 400);
     });
 </script>
 </body>
