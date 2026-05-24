@@ -14,8 +14,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($conn) && $conn !== null) {
     $password = $_POST['password'] ?? '';
     $roles    = trim($_POST['roles'] ?? 'guru'); // Standardisasi nama kolom: roles
 
+    // 1. Validasi Kelengkapan Parameter Induk
     if ($id <= 0 || empty($nama) || empty($email) || empty($username)) {
         setFlash('error', '⚠️ Gagal! Data parameter pembaruan staf tidak lengkap.');
+        header("Location: /pages/admin.php");
+        exit();
+    }
+
+    // 2. PERBAIKAN SEKURITAS: Validasi Whitelist Peran (Roles) Otoritas Staf
+    $allowed_roles = ['guru', 'bk', 'admin', 'super_admin', 'waka_kesiswaan', 'kepala_jurusan', 'yayasan'];
+    if (!in_array($roles, $allowed_roles)) {
+        setFlash('error', '⚠️ Gagal! Perubahan tingkat hak akses (role) ditolak karena tidak valid.');
         header("Location: /pages/admin.php");
         exit();
     }
