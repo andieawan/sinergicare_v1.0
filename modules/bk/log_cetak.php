@@ -1,66 +1,80 @@
 <?php
 // modules/bk/log_cetak.php
-// BUG FIX #5 & #8:
-// - Sebelumnya CREATE TABLE 'log_cetak_surat' secara on-the-fly,
-//   padahal setup.php sudah membuat tabel 'log_surat' dengan struktur yang tepat.
-// - Dua file identik (modules/bk/ dan modules/cetak_surat/) digabung logikanya ke satu.
-// - Sekarang INSERT ke 'log_surat' sesuai schema dari setup.php.
-//   Kolom log_surat: student_id, tipe_surat, tanggal_surat, jam_surat, dibuat_oleh, created_at
 
+// Panggil konfigurasi database dan sistem otentikasi terpusat
 require_once __DIR__ . '/../../config/config.php';
 require_once __DIR__ . '/../../core/auth.php';
-require_once __DIR__ . '/../../core/functions.php';
 
+// Pastikan header keluarannya selalu berupa format data JSON
+header('Content-Type: application/json; charset=utf-8');
+
+// Proteksi Keamanan Akses Sesi - Wajib sudah login
 requireLogin();
 
-if (!hasRole(['super_admin', 'admin', 'bk'])) {
-    http_response_code(403);
-    header('Content-Type: application/json');
-    die(json_encode(['status' => 'error', 'message' => 'Unauthorized access']));
+// Validasi metode pengiriman data harus POST
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    echo json_encode([
+        'status' => 'error', 
+        'message' => '⚠️ Metode pengiriman data tidak sah!'
+    ]);
+    exit();
 }
 
-header('Content-Type: application/json');
+// Tangkap payload parameter dari FormData / POST request
+$student_id    = (int)($_POST['student_id'] ?? 0);
+$tipe_surat    = trim($_POST['tipe_surat'] ?? '');
+$tanggal_surat = $_POST['tanggal'] ?? null;
+$jam_surat     = $_POST['jam'] ?? null;
+$dibuat_oleh   = currentUserId(); // Mengambil ID staf/user yang sedang login saat ini
+
+// Validasi Kelayakan Parameter Utama
+if ($student_id <= 0 || empty($tipe_surat)) {
+    echo json_encode([
+        'status' => 'error', 
+        'message' => '⚠️ Gagal memproses! Parameter data tidak lengkap.'
+    ]);
+    exit();
+}
+
+// Fallback otomatis jika surat langsung dicetak tanpa penjadwalan (misal: Surat Izin Keluar / Surat Pernyataan)
+if (empty($tanggal_surat)) {
+    $tanggal_surat = date('Y-m-d');
+}
+if (empty($jam_surat)) {
+    $jam_surat = date('H:i:s');
+}
 
 try {
-    $user_id    = currentUserId();
-    $student_id = isset($_POST['student_id']) ? (int)$_POST['student_id'] : 0;
-    $tipe_surat = isset($_POST['tipe_surat'])  ? trim($_POST['tipe_surat'])  : '';
-    $tanggal    = !empty($_POST['tanggal'])    ? trim($_POST['tanggal'])    : null;
-    $jam        = !empty($_POST['jam'])        ? trim($_POST['jam'])        : null;
-
-    if (!$user_id) {
-        die(json_encode(['status' => 'error', 'message' => 'User session tidak valid']));
+    // Pastikan koneksi database PDO ($conn) tersedia
+    if (isset($conn) && $conn !== null) {
+        // Ambil nama kolom asli 'dibuat_oleh' sesuai dengan skema tabel log_surat di setup.php
+        $stmt = $conn->prepare("
+            INSERT INTO log_surat (student_id, tipe_surat, tanggal_surat, jam_surat, dibuat_oleh, created_at)
+            VALUES (?, ?, ?, ?, ?, NOW())
+        ");
+        $stmt->execute([
+            $student_id, 
+            $tipe_surat, 
+            $tanggal_surat, 
+            $jam_surat, 
+            $dibuat_oleh
+        ]);
+        
+        echo json_encode([
+            'status' => 'success', 
+            'message' => '✅ Log pencetakan berkas berhasil diarsipkan ke dalam sistem.'
+        ]);
+    } else {
+        echo json_encode([
+            'status' => 'error', 
+            'message' => '⚠️ Koneksi database tidak tersedia.'
+        ]);
     }
-
-    if ($student_id <= 0 || empty($tipe_surat)) {
-        die(json_encode(['status' => 'error', 'message' => 'Parameter tidak valid']));
-    }
-
-    // Pastikan siswa ada
-    $stmt_check = $conn->prepare("SELECT id FROM students WHERE id = ? LIMIT 1");
-    $stmt_check->execute([$student_id]);
-    if (!$stmt_check->fetch()) {
-        die(json_encode(['status' => 'error', 'message' => 'Siswa tidak ditemukan']));
-    }
-
-    // INSERT ke tabel log_surat (sudah dibuat di setup.php)
-    // Kolom: student_id, tipe_surat, tanggal_surat, jam_surat, dibuat_oleh
-    $stmt = $conn->prepare("
-        INSERT INTO log_surat (student_id, tipe_surat, tanggal_surat, jam_surat, dibuat_oleh, created_at)
-        VALUES (?, ?, ?, ?, ?, NOW())
-    ");
-    $stmt->execute([$student_id, $tipe_surat, $tanggal, $jam, $user_id]);
-
-    echo json_encode([
-        'status'  => 'success',
-        'message' => 'Log cetak surat berhasil tercatat',
-        'log_id'  => (int)$conn->lastInsertId()
-    ]);
-
 } catch (PDOException $e) {
-    http_response_code(500);
-    echo json_encode(['status' => 'error', 'message' => 'Database error: ' . $e->getMessage()]);
-} catch (Exception $e) {
-    http_response_code(500);
-    echo json_encode(['status' => 'error', 'message' => 'Error: ' . $e->getMessage()]);
+    // Tangkap kesalahan query database dan kirimkan sebagai pesan error JSON yang informatif
+    echo json_encode([
+        'status' => 'error', 
+        'message' => '❌ Gagal mengarsipkan log ke database: ' . $e->getMessage()
+    ]);
 }
+exit();

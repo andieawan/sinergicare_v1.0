@@ -54,12 +54,11 @@ if (isset($conn) && $conn !== null) {
             $active_consequences = $stmt_con->fetchAll(PDO::FETCH_ASSOC);
         }
 
-        // PERBAIKAN: Mengubah target tabel ke log_surat sesuai berkas setup.php
-        // Serta memetakan kolom dibuat_oleh menjadi alias user_id agar mencegah error data
+        // PERBAIKAN: Menggunakan nama kolom asli dibuat_oleh tanpa alias user_id yang menyesatkan
+        // Kolom ls.* secara otomatis sudah memuat dibuat_oleh, tanggal_surat, dan jam_surat
         try {
             $stmt_log = $conn->query("
-                SELECT ls.*, ls.dibuat_oleh AS user_id, s.nama AS nama_siswa, c.nama_kelas,
-                       ls.tanggal_surat, ls.jam_surat
+                SELECT ls.*, s.nama AS nama_siswa, c.nama_kelas
                 FROM log_surat ls
                 JOIN students s ON ls.student_id = s.id
                 LEFT JOIN classes c ON s.class_id = c.id

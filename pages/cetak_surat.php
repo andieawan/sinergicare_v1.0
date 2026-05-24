@@ -349,46 +349,17 @@ require_once __DIR__ . '/../views/layouts/topbar.php';
         }
 
         // --- Kirim log lalu buka tab cetak ---
-        fetch('/modules/cetak_surat/log_cetak.php', { method: 'POST', body: logData })
-            .then(res => res.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    let printUrl = '';
-
-                    if (letterType === 'panggilan_ortu') {
-                        printUrl = `/prints/cetak_panggilan.php?student_id=${studentId}&tanggal=${formData.get('tanggal')}&jam=${formData.get('jam')}`;
-                    } else if (letterType === 'izin_meninggalkan') {
-                        printUrl = `/prints/cetak_meninggalkan.php?student_id=${studentId}`;
-                    } else if (letterType === 'pernyataan_disiplin') {
-                        printUrl = `/prints/cetak_pernyataan.php?student_id=${studentId}`;
-                    } else if (letterType === 'sp') {
-                        const spId = document.getElementById('sp_select').value;
-                        printUrl = `/prints/cetak_sp.php?id=${spId}`;
-                    }
-
-                    window.open(printUrl, '_blank');
-                    closeLetterForm();
-                } else {
-                    showValidationMsg('Gagal mencatat log: ' + (data.message || 'Unknown error'));
-                }
-            })
-            .catch(err => {
-                console.error('Fetch error:', err);
-                // Fallback: tetap cetak meskipun log gagal
-                let printUrl = '';
-                if (letterType === 'panggilan_ortu') {
-                    printUrl = `/prints/cetak_panggilan.php?student_id=${studentId}&tanggal=${formData.get('tanggal')}&jam=${formData.get('jam')}`;
-                } else if (letterType === 'izin_meninggalkan') {
-                    printUrl = `/prints/cetak_meninggalkan.php?student_id=${studentId}`;
-                } else if (letterType === 'pernyataan_disiplin') {
-                    printUrl = `/prints/cetak_pernyataan.php?student_id=${studentId}`;
-                } else if (letterType === 'sp') {
-                    const spId = document.getElementById('sp_select').value;
-                    printUrl = `/prints/cetak_sp.php?id=${spId}`;
-                }
-                if (printUrl) window.open(printUrl, '_blank');
-                closeLetterForm();
-            });
+        // Ganti url lama ke endpoint terpusat di /modules/bk/
+fetch('/modules/bk/log_cetak.php', { 
+    method: 'POST', 
+    body: formData 
+})
+.then(res => res.json())
+.then(data => {
+    if (data.status === 'success') {
+        console.log('Arsip log surat berhasil diperbarui.');
+    }
+});
     }
 
     // Tutup modal jika klik di luar area modal

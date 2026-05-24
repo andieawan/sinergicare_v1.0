@@ -191,20 +191,34 @@ function closeModalCetakSurat() {
 }
 
 function catatLogSuratAsync(e) {
-    const studentId = document.getElementById('modal_student_id').value;
-    const tgl = document.getElementById('surat_tanggal').value;
-    const jam = document.getElementById('surat_jam').value;
+    // ... setup FormData ...
 
-    let formData = new FormData();
-    formData.append('student_id', studentId);
-    formData.append('tipe_surat', 'panggilan_ortu');
-    formData.append('tanggal', tgl);
-    formData.append('jam', jam);
-
+    // Alokasikan fetch menuju endpoint terpusat
     fetch('/modules/bk/log_cetak.php', { method: 'POST', body: formData })
-        .then(() => { console.log('Log arsip surat tercatat.'); });
+        .then(() => { console.log('Log arsip surat panggilan tercatat.'); });
         
     closeModalCetakSurat();
+}
+
+function cetakSuratLangsung(studentId, tipeSurat, basePathSurat) {
+    // ... setup FormData ...
+
+    // Alokasikan fetch menuju endpoint terpusat
+    fetch('/modules/bk/log_cetak.php', { method: 'POST', body: formData })
+        .then(res => {
+            if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+            return res.json();
+        })
+        .then(data => {
+            if(data.status === 'success') {
+                window.open(`${basePathSurat}?student_id=${studentId}`, '_blank');
+            } else {
+                alert(data.message);
+            }
+        })
+        .catch(err => {
+            window.open(`${basePathSurat}?student_id=${studentId}`, '_blank');
+        });
 }
 
 // Fungsi BARU untuk mencetak Surat Izin & Pernyataan tanpa menggunakan Modal
