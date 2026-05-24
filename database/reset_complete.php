@@ -21,7 +21,21 @@ $pesan  = "";
 $status = "pending";
 
 try {
-    $conn_test = new PDO("mysql:host=localhost;charset=utf8mb4", "root", "");
+    // BUG FIX (BUG-04): Baca konfigurasi database dari file JSON terlebih dahulu,
+    // tidak lagi menggunakan hardcode 'root' dan '' pada instansiasi PDO.
+    if (file_exists(DB_CONFIG_FILE)) {
+        $db_info  = json_decode(file_get_contents(DB_CONFIG_FILE), true);
+        $host     = $db_info['host']     ?? 'localhost';
+        $username = $db_info['username'] ?? 'root';
+        $password = $db_info['password'] ?? '';
+    } else {
+        // Fallback jika file json tidak ditemukan (meskipun harusnya selalu ada)
+        $host     = 'localhost';
+        $username = 'root';
+        $password = '';
+    }
+
+    $conn_test = new PDO("mysql:host=$host;charset=utf8mb4", $username, $password);
     $conn_test->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
     $db_name = 'sinergicare_smk';
@@ -29,24 +43,19 @@ try {
     $pesan .= "✅ Database '$db_name' berhasil dihapus.\n";
     $status = "success";
 } catch (Exception $e) {
-    $pesan .= "⚠️ Tidak bisa drop database. Pastikan MySQL running dan akses root tersedia.\n";
+    $pesan .= "⚠️ Tidak bisa drop database. Pastikan MySQL running dan kredensial akses tersedia.\n";
     $pesan .= "Error: " . htmlspecialchars($e->getMessage()) . "\n";
-    $status = "warning";
-}
-
-if (file_exists(DB_CONFIG_FILE)) {
-    unlink(DB_CONFIG_FILE);
-    $pesan .= "✅ File db_credentials.json dihapus.\n";
+    $status = "error";
 }
 ?>
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Reset Database - SinergiCare</title>
+    <title>Reset Selesai</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-blue-50 p-8">
+<body class="bg-gray-50 p-8">
     <div class="max-w-2xl mx-auto bg-white p-8 rounded-xl shadow-lg">
         <div class="text-center mb-6">
             <h1 class="text-2xl font-bold text-gray-800">🔄 Reset Database</h1>
@@ -66,11 +75,9 @@ if (file_exists(DB_CONFIG_FILE)) {
         <?php else: ?>
             <div class="bg-yellow-50 border border-yellow-300 p-4 rounded-lg mb-6">
                 <p class="text-yellow-800 font-semibold">⚠️ Ada Kendala</p>
-                <p class="text-yellow-700 text-sm mt-2">Silakan reset manual atau hubungi admin server Anda.</p>
+                <p class="text-yellow-700 text-sm mt-2">Silakan periksa pesan error di atas.</p>
             </div>
-            <a href="/database/setup.php" class="inline-block bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold">
-                Lanjut ke Setup →
-            </a>
+            <a href="/database/setup.php" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-lg transition-colors">Kembali ke Setup</a>
         <?php endif; ?>
     </div>
 </body>

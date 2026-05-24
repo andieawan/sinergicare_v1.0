@@ -28,12 +28,12 @@ if (isset($conn) && $conn !== null) {
             $students_attention = $stmt_stu->fetchAll(PDO::FETCH_ASSOC);
         }
 
-        // FEATURE: Query 2 - BARU: Semua siswa untuk cetak surat (aktif saja)
+        // BUG FIX & FEATURE: Query 2 - BARU: Semua siswa untuk cetak surat
+        // Menghapus WHERE s.status = 'aktif' karena kolom status tidak ada di database
         $stmt_all = $conn->query("
             SELECT s.*, c.nama_kelas 
             FROM students s
             LEFT JOIN classes c ON s.class_id = c.id
-            WHERE s.status = 'aktif'
             ORDER BY c.nama_kelas ASC, s.nama ASC
         ");
         if ($stmt_all) {

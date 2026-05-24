@@ -103,13 +103,13 @@
             <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 text-[11px] text-slate-600 space-y-1">
                 <p class="font-bold text-slate-700">💡 Panduan Standar Dokumen:</p>
                 <p>1. Baris pertama wajib berupa nama kolom: <code class="bg-slate-200 px-1 py-0.5 rounded font-mono text-indigo-600">nisn,nama,kelas</code></p>
-                <p>2. Simpan spreadsheet Microsoft Excel Anda ke format **CSV (Comma delimited)**.</p>
+                <p>2. Simpan spreadsheet Microsoft Excel Anda ke format <strong>.xlsx (Excel)</strong>.</p>
                 <p>3. Jika nama kelas baru ditulis pada berkas, sistem otomatis membuatkan kelas tersebut.</p>
             </div>
 
             <div>
-                <label for="file_csv" class="block text-xs font-semibold text-slate-600 mb-1">Pilih Berkas (.csv)</label>
-                <input type="file" id="file_csv" name="file_csv" accept=".csv" required
+                <label for="file_excel" class="block text-xs font-semibold text-slate-600 mb-1">Pilih Berkas (.xlsx)</label>
+                <input type="file" id="file_excel" name="file_excel" accept=".xlsx" required
                        class="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:border-indigo-500 file:mr-3 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
             </div>
 

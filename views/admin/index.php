@@ -153,5 +153,3 @@
 
 </div>
 
-<?php include '../views/modals/modal_import_staf.php'; ?>
-<?php include '../views/modals/modal_import_siswa.php'; ?>

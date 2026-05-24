@@ -66,7 +66,8 @@ try {
     // 3. Proses Baris per Baris
     for ($row = 2; $row <= $highestRow; $row++) {
         // Ambil data dan cast ke string agar aman (terutama NISN yang mungkin diawali nol)
-        $nisn       = trim((string)($sheet->getCell('A' . $row)->getValue() ?? ''));
+        // BUG FIX (BUG-09): Gunakan getFormattedValue() untuk NISN agar leading zero (0) tidak terpotong
+        $nisn       = trim((string)($sheet->getCell('A' . $row)->getFormattedValue() ?? ''));
         $nama_siswa = trim((string)($sheet->getCell('B' . $row)->getValue() ?? ''));
         $nama_kelas = trim((string)($sheet->getCell('C' . $row)->getValue() ?? ''));
 
