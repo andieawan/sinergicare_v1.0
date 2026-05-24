@@ -7,8 +7,6 @@
         <a href="/modules/siswa/export_template_siswa.php" class="bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-sm transition-colors flex items-center gap-2">
             📄 Template Siswa
         </a>
-        <!-- BUG FIX #10: Ganti direct classList.remove('hidden') → bukaModalImportSiswa()
-             agar modal tampil dengan flex (centered) bukan hanya menghapus hidden saja -->
         <button onclick="bukaModalImportSiswa()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-sm transition-colors flex items-center gap-2">
             📥 Import Siswa
         </button>
@@ -105,11 +103,10 @@
             <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
                 <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider">👤 Manajemen Akun Staf</h3>
                 <div class="flex items-center gap-2">
-                    <a href="<?= $web_base ?>/modules/admin/export_template_staf.php" title="Unduh Template Excel Staf" class="text-xs text-slate-500 hover:text-slate-800 font-bold">
+                    <a href="<?= WEB_BASE ?>/modules/admin/export_template_staf.php" title="Unduh Template Excel Staf" class="text-xs text-slate-500 hover:text-slate-800 font-bold">
                         📄 Template
                     </a>
                     <span class="text-slate-200">|</span>
-                    <!-- BUG FIX #10: Sama, ganti classList manipulation → fungsi JS yang benar -->
                     <button onclick="bukaModalImportStaf()" title="Import Excel Staf" class="text-xs text-emerald-600 hover:text-emerald-800 font-bold">
                         📥 Import
                     </button>
