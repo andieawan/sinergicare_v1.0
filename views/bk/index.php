@@ -84,7 +84,7 @@
                                 <span class="text-[9px] font-bold bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded border border-indigo-200">Terarsip</span>
                             </div>
                             <div class="text-[10px] text-slate-500 font-medium">
-                                Jadwal Kehadiran: <?php echo formatTanggalIndo($log['tanggal_surat']); ?> Pukul <?php echo htmlspecialchars(substr($log['jam_surat'], 0, 5), ENT_QUOTES, 'UTF-8'); ?> WIB
+                                Jadwal Kehadiran: <?php echo formatTanggalIndo($log['tanggal_surat']); ?> Pukul <?php echo htmlspecialchars(substr($log['jam_surat'], 0, 5), ENT_QUOTES, 'UTF-8'); ?>
                             </div>
                             <div class="text-[9px] text-slate-400 font-normal">
                                 Dicetak pada: <?php echo date('d/m/Y H:i', strtotime($log['created_at'])); ?>
@@ -161,11 +161,11 @@
             <div class="grid grid-cols-2 gap-3">
                 <div>
                     <label for="surat_tanggal" class="block text-xs font-semibold text-slate-600 mb-1">Tanggal Kehadiran</label>
-                    <input type="date" id="surat_tanggal" name="tanggal" required class="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-slate-800 focus:outline-none focus:border-indigo-500">
+                    <input type="date" id="surat_tanggal" name="tanggal" required class="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-400">
                 </div>
                 <div>
                     <label for="surat_jam" class="block text-xs font-semibold text-slate-600 mb-1">Jam Kehadiran</label>
-                    <input type="time" id="surat_jam" name="jam" required class="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-slate-800 focus:outline-none focus:border-indigo-500">
+                    <input type="time" id="surat_jam" name="jam" required class="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-400">
                 </div>
             </div>
 
@@ -191,37 +191,37 @@ function closeModalCetakSurat() {
 }
 
 function catatLogSuratAsync(e) {
-    // ... setup FormData ...
+    e.preventDefault();
+    
+    const formData = new FormData();
+    formData.append('student_id', document.getElementById('modal_student_id').value);
+    formData.append('tipe_surat', 'panggilan_orang_tua');
+    formData.append('tanggal', document.getElementById('surat_tanggal').value);
+    formData.append('jam', document.getElementById('surat_jam').value);
 
-    // Alokasikan fetch menuju endpoint terpusat
-    fetch('/modules/bk/log_cetak.php', { method: 'POST', body: formData })
-        .then(() => { console.log('Log arsip surat panggilan tercatat.'); });
-        
-    closeModalCetakSurat();
-}
-
-function cetakSuratLangsung(studentId, tipeSurat, basePathSurat) {
-    // ... setup FormData ...
-
-    // Alokasikan fetch menuju endpoint terpusat
+    // BUG FIX: Tunggu fetch selesai sebelum menutup modal
     fetch('/modules/bk/log_cetak.php', { method: 'POST', body: formData })
         .then(res => {
             if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
             return res.json();
         })
         .then(data => {
-            if(data.status === 'success') {
-                window.open(`${basePathSurat}?student_id=${studentId}`, '_blank');
-            } else {
-                alert(data.message);
-            }
+            console.log('Log arsip surat panggilan tercatat.');
+            // Buka form cetak di tab baru
+            const form = document.getElementById('form_cetak_surat');
+            window.open(form.action + '?student_id=' + document.getElementById('modal_student_id').value, '_blank');
         })
         .catch(err => {
-            window.open(`${basePathSurat}?student_id=${studentId}`, '_blank');
+            console.error('Error:', err);
+            alert('Gagal mencatat log surat: ' + err.message);
+        })
+        .finally(() => {
+            // Tutup modal setelah fetch selesai (berhasil atau gagal)
+            closeModalCetakSurat();
         });
 }
 
-// Fungsi BARU untuk mencetak Surat Izin & Pernyataan tanpa menggunakan Modal
+// BUG FIX: Hapus duplikasi fungsi (hanya satu definisi cetakSuratLangsung)
 function cetakSuratLangsung(studentId, tipeSurat, basePathSurat) {
     const label = tipeSurat === 'izin_meninggalkan' ? 'Surat Izin Meninggalkan Sekolah' : 'Surat Pernyataan Kedisiplinan';
     if (!confirm(`Generate dan cetak ${label}?`)) return;
