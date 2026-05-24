@@ -1,6 +1,5 @@
 <?php
 // actions/proses_profile_edit.php
-// PERBAIKAN C5: file ini tidak ada sebelumnya — form edit_profile.php akan 404 tanpa ini
 
 require_once __DIR__ . '/../config/config.php';
 
@@ -64,6 +63,17 @@ try {
         $_SESSION['notif'] = ['type' => 'error', 'message' => 'Password saat ini tidak cocok. Perubahan dibatalkan.'];
         header("Location: /edit_profile.php");
         exit();
+    }
+
+    // PERBAIKAN SEKURITAS: Validasi keunikan alamat email sebelum melakukan update data
+    if (!empty($email)) {
+        $stmt_email = $conn->prepare("SELECT id FROM staf_sekolah WHERE email = ? AND id != ? LIMIT 1");
+        $stmt_email->execute([$email, $user_id]);
+        if ($stmt_email->fetch()) {
+            $_SESSION['notif'] = ['type' => 'error', 'message' => '⚠️ Gagal memperbarui profil! Alamat email tersebut sudah digunakan oleh akun staf lain.'];
+            header("Location: /edit_profile.php");
+            exit();
+        }
     }
 
     // Validasi password baru jika diisi
