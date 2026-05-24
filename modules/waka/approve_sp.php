@@ -2,6 +2,8 @@
 require_once __DIR__ . '/../../config/config.php';
 require_once __DIR__ . '/../../core/auth.php';
 require_once __DIR__ . '/../../core/flash.php';
+// Tambahkan core/functions.php agar fungsi rekalkulasi radar dapat digunakan
+require_once __DIR__ . '/../../core/functions.php';
 
 // Proteksi Akses Sesi - Hanya Otoritas Manajemen Kesiswaan & Admin
 requireLogin();
@@ -45,6 +47,9 @@ if (isset($_GET['id']) && isset($conn) && $conn !== null) {
             WHERE id = ?
         ");
         $stmt_app_stu->execute([$tingkat_sp, $student_id]);
+
+        // Kueri 3: Jalankan rekalkulator radar siswa agar status warna radar diperbarui secara real-time
+        hitungUlangRadarSiswa($conn, $student_id);
 
         // Komit seluruh rangkaian kueri ke dalam database jika aman tanpa interupsi
         $conn->commit();
