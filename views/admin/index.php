@@ -4,8 +4,11 @@
         <p class="text-xs text-slate-400">Kelola konfigurasi kelas, kategori pelanggaran, tingkat risiko, serta kredensial akun staf sekolah.</p>
     </div>
     <div class="flex items-center gap-2">
-        <button onclick="bukaModalImportSiswa()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-sm transition-colors flex items-center gap-2">
-            📥 Impor Massal Siswa (CSV)
+        <a href="../modules/siswa/export_template_siswa.php" class="bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-sm transition-colors flex items-center gap-2">
+            📄 Template Siswa
+        </a>
+        <button onclick="document.getElementById('modal_import_siswa').classList.remove('hidden')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-sm transition-colors flex items-center gap-2">
+            📥 Import Siswa
         </button>
     </div>
 </div>
@@ -16,7 +19,6 @@
         <div>
             <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
                 <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider">🏫 Manajemen Data Kelas</h3>
-                <!-- BUG FIX: alert() → bukaModalTambahKelas() -->
                 <button onclick="bukaModalTambahKelas()" class="text-xs text-indigo-600 font-bold hover:text-indigo-800">+ Tambah</button>
             </div>
             <div class="overflow-x-auto max-h-96 no-scrollbar">
@@ -35,7 +37,6 @@
                                 <tr class="hover:bg-slate-50/50">
                                     <td class="py-2.5 px-3 font-semibold text-slate-800"><?php echo htmlspecialchars($k['nama_kelas'], ENT_QUOTES, 'UTF-8'); ?></td>
                                     <td class="py-2.5 px-3 text-right">
-                                        <!-- BUG FIX: alert() → bukaModalEditKelas() -->
                                         <button onclick="bukaModalEditKelas(<?php echo (int)$k['id']; ?>, '<?php echo htmlspecialchars(addslashes($k['nama_kelas']), ENT_QUOTES, 'UTF-8'); ?>')" 
                                                 class="text-indigo-600 hover:text-indigo-900 font-medium">Edit</button>
                                     </td>
@@ -52,7 +53,6 @@
         <div>
             <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
                 <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider">🔥 Regulasi Jenis Kejadian</h3>
-                <!-- BUG FIX: alert() → bukaModalTambahKategori() -->
                 <button onclick="bukaModalTambahKategori()" class="text-xs text-indigo-600 font-bold hover:text-indigo-800">+ Tambah</button>
             </div>
             <div class="overflow-x-auto max-h-96 no-scrollbar">
@@ -86,7 +86,6 @@
                                         </span>
                                     </td>
                                     <td class="py-2.5 px-3 text-right">
-                                        <!-- BUG FIX: alert() → bukaModalEditKategori() -->
                                         <button onclick="bukaModalEditKategori(<?php echo (int)$kat['id']; ?>, '<?php echo htmlspecialchars(addslashes($kat['nama_kejadian']), ENT_QUOTES, 'UTF-8'); ?>', '<?php echo htmlspecialchars($kat['bobot_risiko'], ENT_QUOTES, 'UTF-8'); ?>')" 
                                                 class="text-indigo-600 hover:text-indigo-900 font-medium">Edit</button>
                                     </td>
@@ -103,8 +102,17 @@
         <div>
             <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
                 <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider">👤 Manajemen Akun Staf</h3>
-                <!-- BUG FIX: alert() → bukaModalTambahStaf() -->
-                <button onclick="bukaModalTambahStaf()" class="text-xs text-indigo-600 font-bold hover:text-indigo-800">+ Akun Baru</button>
+                <div class="flex items-center gap-2">
+                    <a href="../modules/admin/export_template_staf.php" title="Unduh Template Excel Staf" class="text-xs text-slate-500 hover:text-slate-800 font-bold">
+                        📄 Template
+                    </a>
+                    <span class="text-slate-200">|</span>
+                    <button onclick="document.getElementById('modal_import_staf').classList.remove('hidden')" title="Import Excel Staf" class="text-xs text-emerald-600 hover:text-emerald-800 font-bold">
+                        📥 Import
+                    </button>
+                    <span class="text-slate-200">|</span>
+                    <button onclick="bukaModalTambahStaf()" class="text-xs text-indigo-600 font-bold hover:text-indigo-800">+ Akun Baru</button>
+                </div>
             </div>
             <div class="overflow-x-auto max-h-96 no-scrollbar">
                 <table class="w-full text-left text-xs text-slate-600">
@@ -131,7 +139,6 @@
                                         </span>
                                     </td>
                                     <td class="py-2.5 px-3 text-right">
-                                        <!-- BUG FIX: alert() → bukaModalEditStaf() -->
                                         <button onclick="bukaModalEditStaf(<?php echo (int)$s['id']; ?>, '<?php echo htmlspecialchars(addslashes($s['nama']), ENT_QUOTES, 'UTF-8'); ?>', '<?php echo htmlspecialchars($s['email'], ENT_QUOTES, 'UTF-8'); ?>', '<?php echo htmlspecialchars($s['username'], ENT_QUOTES, 'UTF-8'); ?>', '<?php echo htmlspecialchars($s['roles'], ENT_QUOTES, 'UTF-8'); ?>')" 
                                                 class="text-indigo-600 hover:text-indigo-900 font-medium">Edit</button>
                                     </td>
@@ -145,3 +152,6 @@
     </div>
 
 </div>
+
+<?php include '../views/modals/modal_import_staf.php'; ?>
+<?php include '../views/modals/modal_import_siswa.php'; ?>
