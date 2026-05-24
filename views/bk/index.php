@@ -44,7 +44,6 @@
                                         <?php echo htmlspecialchars(str_replace('_', ' ', $siswa['level_eskalasi']), ENT_QUOTES, 'UTF-8'); ?>
                                     </td>
                                     <td class="py-3 px-3 text-right whitespace-nowrap space-x-1.5">
-                                        <!-- BUG FIX: onclick → bukaModalTambahKonsekuensi() dari views/modals/bk.php -->
                                         <button onclick="bukaModalTambahKonsekuensi(<?php echo (int)$siswa['id']; ?>, '<?php echo htmlspecialchars(addslashes($siswa['nama']), ENT_QUOTES, 'UTF-8'); ?>')" 
                                                 class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-bold px-2.5 py-1.5 rounded-lg transition-colors">
                                             + Konsekuensi
@@ -52,6 +51,14 @@
                                         <button onclick="bukaModalCetakSurat(<?php echo (int)$siswa['id']; ?>, '<?php echo htmlspecialchars(addslashes($siswa['nama']), ENT_QUOTES, 'UTF-8'); ?>')" 
                                                 class="bg-indigo-50 border border-indigo-200 text-indigo-600 hover:bg-indigo-100 text-[11px] font-bold px-2.5 py-1.5 rounded-lg transition-colors">
                                             ✉️ Panggilan Ortu
+                                        </button>
+                                        <button onclick="cetakSuratLangsung(<?php echo (int)$siswa['id']; ?>, 'izin_meninggalkan', '/prints/cetak_meninggalkan.php')" 
+                                                class="bg-amber-50 border border-amber-200 text-amber-600 hover:bg-amber-100 text-[11px] font-bold px-2.5 py-1.5 rounded-lg transition-colors">
+                                            🚶 Izin Keluar
+                                        </button>
+                                        <button onclick="cetakSuratLangsung(<?php echo (int)$siswa['id']; ?>, 'pernyataan_disiplin', '/prints/cetak_pernyataan.php')" 
+                                                class="bg-rose-50 border border-rose-200 text-rose-600 hover:bg-rose-100 text-[11px] font-bold px-2.5 py-1.5 rounded-lg transition-colors">
+                                            📜 Pernyataan
                                         </button>
                                     </td>
                                 </tr>
@@ -120,7 +127,6 @@
                                     <?php echo htmlspecialchars($task['deskripsi_tugas'], ENT_QUOTES, 'UTF-8'); ?>
                                 </td>
                                 <td class="py-3 px-3 text-slate-500 font-semibold">
-                                    <!-- BUG FIX: tampilkan nama dari JOIN, bukan integer FK -->
                                     👤 <?php echo htmlspecialchars($task['nama_penanggung_jawab'] ?? 'Tidak Diketahui', ENT_QUOTES, 'UTF-8'); ?>
                                 </td>
                                 <td class="py-3 px-3 text-center">
@@ -199,5 +205,32 @@ function catatLogSuratAsync(e) {
         .then(() => { console.log('Log arsip surat tercatat.'); });
         
     closeModalCetakSurat();
+}
+
+// Fungsi BARU untuk mencetak Surat Izin & Pernyataan tanpa menggunakan Modal
+function cetakSuratLangsung(studentId, tipeSurat, basePathSurat) {
+    const label = tipeSurat === 'izin_meninggalkan' ? 'Surat Izin Meninggalkan Sekolah' : 'Surat Pernyataan Kedisiplinan';
+    if (!confirm(`Generate dan cetak ${label}?`)) return;
+
+    let formData = new FormData();
+    formData.append('student_id', studentId);
+    formData.append('tipe_surat', tipeSurat);
+
+    fetch('/modules/bk/log_cetak.php', { method: 'POST', body: formData })
+        .then(res => res.json())
+        .then(data => {
+            if(data.status === 'success') {
+                console.log(`[Log Arsip]: ${label} berhasil dicatat.`);
+                // Buka pop-up tab baru untuk cetak dokumen otomatis
+                window.open(`${basePathSurat}?student_id=${studentId}`, '_blank');
+            } else {
+                alert('Gagal mencatat log surat: ' + data.message);
+            }
+        })
+        .catch(err => {
+            console.error('Error saat mencatat histori surat:', err);
+            // Fallback: Tetap izinkan cetak di tab baru meskipun ajax gagal (opsional)
+            window.open(`${basePathSurat}?student_id=${studentId}`, '_blank');
+        });
 }
 </script>
