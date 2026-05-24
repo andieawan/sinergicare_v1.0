@@ -3,19 +3,18 @@ require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../core/auth.php';
 require_once __DIR__ . '/../core/functions.php';
 
-// Proteksi Sesi dan Hak Akses Peran (Hanya BK & Admin)
 requireLogin();
 requireRole(['super_admin', 'admin', 'bk']);
 
 $user_id_login = currentUserId();
 
-$students_attention = [];
+$students_attention  = [];
 $active_consequences = [];
-$letter_logs = [];
+$letter_logs         = [];
+$staf_list           = []; // BUG FIX: untuk dropdown penanggung_jawab di modal
 
 if (isset($conn) && $conn !== null) {
     try {
-        // 1. Ambil daftar siswa di Zona Kuning atau Merah yang memerlukan intervensi BK
         $stmt_stu = $conn->query("
             SELECT s.*, c.nama_kelas 
             FROM students s
@@ -27,13 +26,14 @@ if (isset($conn) && $conn !== null) {
             $students_attention = $stmt_stu->fetchAll(PDO::FETCH_ASSOC);
         }
 
-        // 2. Ambil daftar konsekuensi/tugas kedisiplinan yang sedang berjalan (status: proses)
-        // PERINGATAN: Sesuai REFERENCE.md, tidak boleh menyeleksi atau menggunakan kolom bk_id!
+        // BUG FIX: JOIN staf_sekolah untuk tampilkan nama penanggung_jawab
         $stmt_con = $conn->query("
-            SELECT co.*, s.nama AS nama_siswa, c.nama_kelas
+            SELECT co.*, s.nama AS nama_siswa, c.nama_kelas,
+                   ss.nama AS nama_penanggung_jawab
             FROM consequences co
             JOIN students s ON co.student_id = s.id
             LEFT JOIN classes c ON s.class_id = c.id
+            LEFT JOIN staf_sekolah ss ON co.penanggung_jawab = ss.id
             WHERE co.status_tugas = 'proses'
             ORDER BY co.id DESC
         ");
@@ -41,7 +41,6 @@ if (isset($conn) && $conn !== null) {
             $active_consequences = $stmt_con->fetchAll(PDO::FETCH_ASSOC);
         }
 
-        // 3. Ambil riwayat cetak log surat panggilan orang tua teratas
         $stmt_log = $conn->query("
             SELECT ls.*, s.nama AS nama_siswa, c.nama_kelas
             FROM log_surat ls
@@ -54,18 +53,25 @@ if (isset($conn) && $conn !== null) {
             $letter_logs = $stmt_log->fetchAll(PDO::FETCH_ASSOC);
         }
 
+        // BUG FIX: ambil daftar staf untuk dropdown penanggung_jawab
+        $stmt_staf = $conn->query("SELECT id, nama FROM staf_sekolah ORDER BY nama ASC");
+        if ($stmt_staf) {
+            $staf_list = $stmt_staf->fetchAll(PDO::FETCH_ASSOC);
+        }
+
     } catch (Exception $e) {
-        // Safe Fallback jika terjadi kendala pada kueri relasional database
-        $students_attention = [];
+        $students_attention  = [];
         $active_consequences = [];
-        $letter_logs = [];
+        $letter_logs         = [];
+        $staf_list           = [];
     }
 }
 
-// Komposisi Struktur Kerangka Layout Utama SinergiCare
 $pageTitle = 'Panel Bimbingan Konseling (BK)';
 require_once __DIR__ . '/../views/layouts/header.php';
 require_once __DIR__ . '/../views/layouts/sidebar.php';
 require_once __DIR__ . '/../views/layouts/topbar.php';
 require_once __DIR__ . '/../views/bk/index.php';
+// BUG FIX: include modal BK agar tombol + Konsekuensi berfungsi
+require_once __DIR__ . '/../views/modals/bk.php';
 require_once __DIR__ . '/../views/layouts/footer.php';

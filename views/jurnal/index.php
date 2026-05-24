@@ -33,7 +33,8 @@
             <div class="grid grid-cols-2 gap-3">
                 <div>
                     <label for="tanggal_kejadian" class="block text-xs font-semibold text-slate-600 mb-1">Tanggal</label>
-                    <input type="date" id="tanggal_kejadian" name="tanggal_kejadian" required value="<?php echo date('Y-md'); ?>"
+                    <!-- BUG FIX: date('Y-md') → date('Y-m-d') -->
+                    <input type="date" id="tanggal_kejadian" name="tanggal_kejadian" required value="<?php echo date('Y-m-d'); ?>"
                            class="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-slate-800 focus:outline-none focus:border-indigo-500 transition-colors">
                 </div>
                 <div>
@@ -78,9 +79,8 @@
                         <?php else: ?>
                             <?php foreach ($incidents as $log): ?>
                                 <?php 
-                                    // Validasi aturan bisnis: Tombol aksi aktif jika user adalah BK/Admin ATAU pelapor asli dalam kurun waktu < 30 menit
-                                    $is_owner = ($log['user_id'] == $user_id_login);
-                                    $within_time = (time() - strtotime($log['created_at']) <= 1800);
+                                    $is_owner        = ($log['user_id'] == $user_id_login);
+                                    $within_time     = (time() - strtotime($log['created_at']) <= 1800);
                                     $boleh_edit_hapus = $is_bk_admin || ($is_owner && $within_time);
                                 ?>
                                 <tr class="hover:bg-slate-50/60 transition-colors">
@@ -111,7 +111,14 @@
                                     </td>
                                     <td class="py-3 px-3 text-right whitespace-nowrap">
                                         <?php if ($boleh_edit_hapus): ?>
-                                            <button onclick="alert('Fitur edit id: <?php echo $log['id']; ?> akan aktif via Modal di Tahap 14')" 
+                                            <!-- BUG FIX: onclick → bukaModalEditJurnal() + gunakan tanggal_kejadian bukan created_at -->
+                                            <button onclick="bukaModalEditJurnal(
+                                                <?php echo (int)$log['id']; ?>,
+                                                <?php echo (int)$log['category_id']; ?>,
+                                                '<?php echo htmlspecialchars(addslashes($log['catatan']), ENT_QUOTES, 'UTF-8'); ?>',
+                                                '<?php echo htmlspecialchars($log['lokasi_kejadian'] ?? '', ENT_QUOTES, 'UTF-8'); ?>',
+                                                '<?php echo htmlspecialchars($log['tanggal_kejadian'] ?? date('Y-m-d', strtotime($log['created_at'])), ENT_QUOTES, 'UTF-8'); ?>'
+                                            )" 
                                                     class="text-indigo-600 hover:text-indigo-900 text-xs font-semibold mr-2 transition-colors">
                                                 Edit
                                             </button>

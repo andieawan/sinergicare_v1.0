@@ -3,7 +3,6 @@ require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../core/auth.php';
 require_once __DIR__ . '/../core/functions.php';
 
-// Proteksi halaman - Hanya pengguna terautentikasi yang diizinkan
 requireLogin();
 requireRole(['super_admin', 'admin', 'bk', 'guru', 'waka_kesiswaan', 'kepala_jurusan']);
 
@@ -17,21 +16,17 @@ $incidents  = [];
 
 if (isset($conn) && $conn !== null) {
     try {
-        // 1. Ambil daftar kategori pelanggaran untuk dropdown form
         $stmt_cat = $conn->query("SELECT id, nama_kejadian, bobot_risiko FROM violation_categories ORDER BY nama_kejadian ASC");
         if ($stmt_cat) {
             $categories = $stmt_cat->fetchAll(PDO::FETCH_ASSOC);
         }
 
-        // 2. Ambil daftar siswa aktif untuk referensi datalist pencarian cepat
         $stmt_stu = $conn->query("SELECT s.id, s.nisn, s.nama, c.nama_kelas FROM students s LEFT JOIN classes c ON s.class_id = c.id ORDER BY s.nama ASC");
         if ($stmt_stu) {
             $students = $stmt_stu->fetchAll(PDO::FETCH_ASSOC);
         }
 
-        // 3. Ambil data riwayat insiden berdasarkan peran hak akses
         if ($is_bk_admin || in_array('waka_kesiswaan', $user_roles) || in_array('kepala_jurusan', $user_roles)) {
-            // Manajemen, BK, dan Admin dapat melihat seluruh riwayat rekaman sekolah
             $stmt_inc = $conn->prepare("
                 SELECT i.*, s.nama AS nama_siswa, c.nama_kelas, vc.nama_kejadian, vc.bobot_risiko, st.nama AS nama_pelapor
                 FROM incidents i
@@ -43,7 +38,6 @@ if (isset($conn) && $conn !== null) {
             ");
             $stmt_inc->execute();
         } else {
-            // Guru biasa hanya diperbolehkan melihat riwayat insiden yang mereka laporkan sendiri
             $stmt_inc = $conn->prepare("
                 SELECT i.*, s.nama AS nama_siswa, c.nama_kelas, vc.nama_kejadian, vc.bobot_risiko, st.nama AS nama_pelapor
                 FROM incidents i
@@ -59,15 +53,15 @@ if (isset($conn) && $conn !== null) {
         $incidents = $stmt_inc->fetchAll(PDO::FETCH_ASSOC);
 
     } catch (Exception $e) {
-        // Fallback jika terjadi kendala kueri database
         $incidents = [];
     }
 }
 
-// Render struktur layout ekosistem SinergiCare
 $pageTitle = 'Jurnal Insiden Kedisiplinan';
 require_once __DIR__ . '/../views/layouts/header.php';
 require_once __DIR__ . '/../views/layouts/sidebar.php';
 require_once __DIR__ . '/../views/layouts/topbar.php';
 require_once __DIR__ . '/../views/jurnal/index.php';
+// BUG FIX: include modal jurnal agar tombol Edit berfungsi
+require_once __DIR__ . '/../views/modals/jurnal.php';
 require_once __DIR__ . '/../views/layouts/footer.php';

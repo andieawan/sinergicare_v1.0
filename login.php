@@ -1,10 +1,12 @@
 <?php
 session_start();
-// Jika sudah login, langsung lempar ke halaman utama
+// Jika sudah login, langsung ke halaman utama
 if (isset($_SESSION['user_id'])) {
     header("Location: index.php");
     exit();
 }
+// BUG FIX: sertakan sistem flash agar pesan error dari modules/auth/login.php bisa tampil
+require_once __DIR__ . '/core/flash.php';
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -22,13 +24,14 @@ if (isset($_SESSION['user_id'])) {
             <p class="text-sm text-gray-500 mt-1">Silakan masuk menggunakan akun staf Anda</p>
         </div>
 
-        <?php if (isset($_SESSION['error_login'])): ?>
-            <div class="mb-4 p-3 bg-red-50 border border-red-300 text-red-800 text-xs font-semibold rounded-lg">
-                ❌ <?php echo $_SESSION['error_login']; unset($_SESSION['error_login']); ?>
-            </div>
-        <?php endif; ?>
+        <?php
+        // BUG FIX: gunakan displayFlash() dari core/flash.php (konsisten dengan seluruh sistem)
+        // Hapus blok lama: if (isset($_SESSION['error_login']))
+        displayFlash();
+        ?>
 
-        <form action="actions/proses_login.php" method="POST" class="space-y-4">
+        <!-- BUG FIX: form action → /modules/auth/login.php (bukan actions/proses_login.php yang tidak ada) -->
+        <form action="/modules/auth/login.php" method="POST" class="space-y-4">
             <div>
                 <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Username</label>
                 <input type="text" name="username" class="w-full p-2.5 text-sm border rounded-lg bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none" placeholder="username" required>

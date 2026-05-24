@@ -11,7 +11,8 @@
         <div>
             <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
                 <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider">🏫 Manajemen Data Kelas</h3>
-                <button onclick="alert('Form tambah kelas diintegrasikan di Modals Tahap 14')" class="text-xs text-indigo-600 font-bold hover:text-indigo-800">+ Tambah</button>
+                <!-- BUG FIX: alert() → bukaModalTambahKelas() -->
+                <button onclick="bukaModalTambahKelas()" class="text-xs text-indigo-600 font-bold hover:text-indigo-800">+ Tambah</button>
             </div>
             <div class="overflow-x-auto max-h-96 no-scrollbar">
                 <table class="w-full text-left text-xs text-slate-600">
@@ -29,7 +30,9 @@
                                 <tr class="hover:bg-slate-50/50">
                                     <td class="py-2.5 px-3 font-semibold text-slate-800"><?php echo htmlspecialchars($k['nama_kelas'], ENT_QUOTES, 'UTF-8'); ?></td>
                                     <td class="py-2.5 px-3 text-right">
-                                        <button onclick="alert('Aksi edit kelas ID: <?php echo $k['id']; ?> aktif via Modal di Tahap 14')" class="text-indigo-600 hover:text-indigo-900 font-medium">Edit</button>
+                                        <!-- BUG FIX: alert() → bukaModalEditKelas() -->
+                                        <button onclick="bukaModalEditKelas(<?php echo (int)$k['id']; ?>, '<?php echo htmlspecialchars(addslashes($k['nama_kelas']), ENT_QUOTES, 'UTF-8'); ?>')" 
+                                                class="text-indigo-600 hover:text-indigo-900 font-medium">Edit</button>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
@@ -44,7 +47,8 @@
         <div>
             <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
                 <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider">🔥 Regulasi Jenis Kejadian</h3>
-                <button onclick="alert('Form tambah kategori diintegrasikan di Modals Tahap 14')" class="text-xs text-indigo-600 font-bold hover:text-indigo-800">+ Tambah</button>
+                <!-- BUG FIX: alert() → bukaModalTambahKategori() -->
+                <button onclick="bukaModalTambahKategori()" class="text-xs text-indigo-600 font-bold hover:text-indigo-800">+ Tambah</button>
             </div>
             <div class="overflow-x-auto max-h-96 no-scrollbar">
                 <table class="w-full text-left text-xs text-slate-600">
@@ -77,7 +81,9 @@
                                         </span>
                                     </td>
                                     <td class="py-2.5 px-3 text-right">
-                                        <button onclick="alert('Aksi edit kategori ID: <?php echo $kat['id']; ?> aktif via Modal di Tahap 14')" class="text-indigo-600 hover:text-indigo-900 font-medium">Edit</button>
+                                        <!-- BUG FIX: alert() → bukaModalEditKategori() -->
+                                        <button onclick="bukaModalEditKategori(<?php echo (int)$kat['id']; ?>, '<?php echo htmlspecialchars(addslashes($kat['nama_kejadian']), ENT_QUOTES, 'UTF-8'); ?>', '<?php echo htmlspecialchars($kat['bobot_risiko'], ENT_QUOTES, 'UTF-8'); ?>')" 
+                                                class="text-indigo-600 hover:text-indigo-900 font-medium">Edit</button>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
@@ -92,7 +98,8 @@
         <div>
             <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
                 <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider">👤 Manajemen Akun Staf</h3>
-                <button onclick="alert('Form tambah pengguna diintegrasikan di Modals Tahap 14')" class="text-xs text-indigo-600 font-bold hover:text-indigo-800">+ Akun Baru</button>
+                <!-- BUG FIX: alert() → bukaModalTambahStaf() -->
+                <button onclick="bukaModalTambahStaf()" class="text-xs text-indigo-600 font-bold hover:text-indigo-800">+ Akun Baru</button>
             </div>
             <div class="overflow-x-auto max-h-96 no-scrollbar">
                 <table class="w-full text-left text-xs text-slate-600">
@@ -119,7 +126,9 @@
                                         </span>
                                     </td>
                                     <td class="py-2.5 px-3 text-right">
-                                        <button onclick="alert('Aksi edit akun staf ID: <?php echo $s['id']; ?> aktif via Modal di Tahap 14')" class="text-indigo-600 hover:text-indigo-900 font-medium">Edit</button>
+                                        <!-- BUG FIX: alert() → bukaModalEditStaf() -->
+                                        <button onclick="bukaModalEditStaf(<?php echo (int)$s['id']; ?>, '<?php echo htmlspecialchars(addslashes($s['nama']), ENT_QUOTES, 'UTF-8'); ?>', '<?php echo htmlspecialchars($s['email'], ENT_QUOTES, 'UTF-8'); ?>', '<?php echo htmlspecialchars($s['username'], ENT_QUOTES, 'UTF-8'); ?>', '<?php echo htmlspecialchars($s['roles'], ENT_QUOTES, 'UTF-8'); ?>')" 
+                                                class="text-indigo-600 hover:text-indigo-900 font-medium">Edit</button>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>

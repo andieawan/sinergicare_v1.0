@@ -28,19 +28,28 @@
                                         <div class="text-[10px] text-slate-400 font-normal">NISN: <?php echo htmlspecialchars($siswa['nisn'], ENT_QUOTES, 'UTF-8'); ?> | Kelas: <?php echo htmlspecialchars($siswa['nama_kelas'] ?? 'Tanpa Kelas', ENT_QUOTES, 'UTF-8'); ?></div>
                                     </td>
                                     <td class="py-3 px-3 text-center">
+                                        <?php
+                                        // BUG FIX: ikon zona sesuai status, bukan selalu 🔴
+                                        $icon_zona = match($siswa['status_warna']) {
+                                            'merah'  => '🔴',
+                                            'kuning' => '🟡',
+                                            default  => '🟢'
+                                        };
+                                        ?>
                                         <span class="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 border rounded-full <?php echo getStatusBadgeClass($siswa['status_warna']); ?>">
-                                            🔴 Zona <?php echo htmlspecialchars($siswa['status_warna'], ENT_QUOTES, 'UTF-8'); ?>
+                                            <?php echo $icon_zona; ?> Zona <?php echo htmlspecialchars($siswa['status_warna'], ENT_QUOTES, 'UTF-8'); ?>
                                         </span>
                                     </td>
                                     <td class="py-3 px-3 text-center text-slate-700 font-semibold capitalize">
                                         <?php echo htmlspecialchars(str_replace('_', ' ', $siswa['level_eskalasi']), ENT_QUOTES, 'UTF-8'); ?>
                                     </td>
                                     <td class="py-3 px-3 text-right whitespace-nowrap space-x-1.5">
-                                        <button onclick="alert('Formulir tambah tugas konsekuensi untuk ID Siswa: <?php echo $siswa['id']; ?> akan aktif via Modal di Tahap 14')" 
+                                        <!-- BUG FIX: onclick → bukaModalTambahKonsekuensi() dari views/modals/bk.php -->
+                                        <button onclick="bukaModalTambahKonsekuensi(<?php echo (int)$siswa['id']; ?>, '<?php echo htmlspecialchars(addslashes($siswa['nama']), ENT_QUOTES, 'UTF-8'); ?>')" 
                                                 class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-bold px-2.5 py-1.5 rounded-lg transition-colors">
                                             + Konsekuensi
                                         </button>
-                                        <button onclick="bukaModalCetakSurat(<?php echo $siswa['id']; ?>, '<?php echo htmlspecialchars($siswa['nama'], ENT_QUOTES, 'UTF-8'); ?>')" 
+                                        <button onclick="bukaModalCetakSurat(<?php echo (int)$siswa['id']; ?>, '<?php echo htmlspecialchars(addslashes($siswa['nama']), ENT_QUOTES, 'UTF-8'); ?>')" 
                                                 class="bg-indigo-50 border border-indigo-200 text-indigo-600 hover:bg-indigo-100 text-[11px] font-bold px-2.5 py-1.5 rounded-lg transition-colors">
                                             ✉️ Panggilan Ortu
                                         </button>
@@ -111,7 +120,8 @@
                                     <?php echo htmlspecialchars($task['deskripsi_tugas'], ENT_QUOTES, 'UTF-8'); ?>
                                 </td>
                                 <td class="py-3 px-3 text-slate-500 font-semibold">
-                                    👤 <?php echo htmlspecialchars($task['penanggung_jawab'], ENT_QUOTES, 'UTF-8'); ?>
+                                    <!-- BUG FIX: tampilkan nama dari JOIN, bukan integer FK -->
+                                    👤 <?php echo htmlspecialchars($task['nama_penanggung_jawab'] ?? 'Tidak Diketahui', ENT_QUOTES, 'UTF-8'); ?>
                                 </td>
                                 <td class="py-3 px-3 text-center">
                                     <span class="text-[9px] font-bold uppercase bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded-full animate-pulse">
@@ -119,7 +129,7 @@
                                     </span>
                                 </td>
                                 <td class="py-3 px-3 text-right">
-                                    <a href="/modules/bk/complete_task.php?id=<?php echo $task['id']; ?>" 
+                                    <a href="/modules/bk/complete_task.php?id=<?php echo (int)$task['id']; ?>" 
                                        onclick="return confirm('Nyatakan tugas konsekuensi ini telah Selesai & Valid?')"
                                        class="bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold px-2.5 py-1.5 rounded-lg shadow-sm transition-colors">
                                         ✓ Selesai
@@ -169,13 +179,11 @@ function bukaModalCetakSurat(id, nama) {
     document.getElementById('modal_cetak_surat').classList.add('flex');
 }
 
-// Menutup modal pemicu
 function closeModalCetakSurat() {
     document.getElementById('modal_cetak_surat').classList.add('hidden');
     document.getElementById('modal_cetak_surat').classList.remove('flex');
 }
 
-// Mengirim log cetak via fetch sebelum jendela cetak/print browser terbuka
 function catatLogSuratAsync(e) {
     const studentId = document.getElementById('modal_student_id').value;
     const tgl = document.getElementById('surat_tanggal').value;
