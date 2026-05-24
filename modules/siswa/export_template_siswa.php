@@ -31,12 +31,12 @@ $headerStyle->getFont()->setBold(true);
 $headerStyle->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
 // 2. Berikan 1 baris dummy data sebagai contoh
-// NISN di-set explicit sebagai STRING agar angka 0 di depan tidak terhapus otomatis oleh Excel
+// NISN di-set explicit sebagai STRING agar angka 0 di depan tidak terhapus
 $sheet->setCellValueExplicit('A2', '0012345678', DataType::TYPE_STRING);
 $sheet->setCellValue('B2', 'Andi Prasetyo');
 $sheet->setCellValue('C2', 'XII DKV 1');
 
-// Tambahkan catatan/hint di baris ke-3 (opsional, tapi membantu)
+// Tambahkan catatan/hint di baris ke-3
 $sheet->setCellValue('A3', 'Catatan: Baris contoh ini (baris 2) harap dihapus sebelum di-import.');
 $sheet->mergeCells('A3:C3');
 $sheet->getStyle('A3')->getFont()->setItalic(true)->getColor()->setARGB('FF888888');
@@ -44,6 +44,13 @@ $sheet->getStyle('A3')->getFont()->setItalic(true)->getColor()->setARGB('FF88888
 // 3. Auto-size kolom agar rapi saat dibuka
 foreach (range('A', 'C') as $columnID) {
     $sheet->getColumnDimension($columnID)->setAutoSize(true);
+}
+
+// =========================================================
+// FIX ERROR CORRUPT: Bersihkan output buffer dari kebocoran
+// =========================================================
+if (ob_get_length()) {
+    ob_end_clean();
 }
 
 // 4. Output Stream langsung ke browser

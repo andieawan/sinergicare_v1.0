@@ -2,7 +2,7 @@
 require_once '../../config/config.php';
 require_once '../../core/auth.php';
 
-// Pastikan composer autoload sudah dipanggil untuk PhpSpreadsheet
+// Pastikan composer autoload sudah dipanggil
 require_once '../../vendor/autoload.php';
 
 requireLogin();
@@ -36,7 +36,7 @@ $sheet->setCellValue('C2', 'budiguru');
 $sheet->setCellValue('D2', 'Password123');
 $sheet->setCellValue('E2', 'guru');
 
-// Tambahkan catatan/hint di baris ke-3 (opsional, tapi membantu user)
+// Tambahkan catatan/hint di baris ke-3 
 $sheet->setCellValue('A3', 'Catatan: Baris contoh ini (baris 2) harap dihapus sebelum di-import.');
 $sheet->mergeCells('A3:E3');
 $sheet->getStyle('A3')->getFont()->setItalic(true)->getColor()->setARGB('FF888888');
@@ -44,6 +44,13 @@ $sheet->getStyle('A3')->getFont()->setItalic(true)->getColor()->setARGB('FF88888
 // 3. Auto-size kolom agar rapi saat dibuka
 foreach (range('A', 'E') as $columnID) {
     $sheet->getColumnDimension($columnID)->setAutoSize(true);
+}
+
+// =========================================================
+// FIX ERROR CORRUPT: Bersihkan output buffer dari kebocoran
+// =========================================================
+if (ob_get_length()) {
+    ob_end_clean();
 }
 
 // 4. Output Stream langsung ke browser
