@@ -4,7 +4,7 @@
         <p class="text-xs text-slate-400">Kelola konfigurasi kelas, kategori pelanggaran, tingkat risiko, serta kredensial akun staf sekolah.</p>
     </div>
     <div class="flex items-center gap-2">
-        <a href="<?= $web_base ?>/modules/siswa/export_template_siswa.php" class="bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-sm transition-colors flex items-center gap-2">
+        <a href="/modules/siswa/export_template_siswa.php" class="bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-sm transition-colors flex items-center gap-2">
             📄 Template Siswa
         </a>
         <button onclick="document.getElementById('modal_import_siswa').classList.remove('hidden')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-sm transition-colors flex items-center gap-2">
