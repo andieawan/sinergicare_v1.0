@@ -62,6 +62,7 @@ try {
         `username` VARCHAR(50) NOT NULL UNIQUE,
         `password` VARCHAR(255) NOT NULL,
         `roles` VARCHAR(50) NOT NULL DEFAULT 'guru',
+        `must_change_password` TINYINT(1) NOT NULL DEFAULT 0,
         `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     ) ENGINE=InnoDB");
 
@@ -171,9 +172,9 @@ try {
 
     // 2. Memasukkan 1 Akun Default (Super Admin)
     $staf = [
-        ['1', 'Administrator Utama', 'super@smk.sch.id', 'admin', 'admin123', 'super_admin']
+        ['1', 'Administrator Utama', 'admin@smk.sch.id', 'admin', 'admin', 'super_admin', 1]
     ];
-    $stmt = $pdo->prepare("INSERT INTO `staf_sekolah` (id, nama, email, username, password, roles) VALUES (?, ?, ?, ?, ?, ?)");
+    $stmt = $pdo->prepare("INSERT INTO `staf_sekolah` (id, nama, email, username, password, roles, must_change_password) VALUES (?, ?, ?, ?, ?, ?, ?)");
     foreach ($staf as $s) {
         $s[4] = password_hash($s[4], PASSWORD_BCRYPT); // hash password sebelum insert
         $stmt->execute($s);
@@ -201,8 +202,9 @@ try {
     echo "====================================================\n";
     echo "\nKredensial Login Default:\n";
     echo "  Username : admin\n";
-    echo "  Password : admin123\n";
+    echo "  Password : admin\n";
     echo "\nPassword telah diamankan dengan enkripsi bcrypt.\n";
+    echo "⚠️  Setelah login pertama, pengguna WAJIB mengganti password.\n";
 
 } catch (PDOException $e) {
     echo "\n❌ [FATAL ERROR]: " . $e->getMessage() . "\n";

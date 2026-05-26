@@ -39,6 +39,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($conn) && $conn !== null) {
                 $_SESSION['user_nama']  = $user['nama'];
                 $_SESSION['user_roles'] = [$user['roles']]; // Dibungkus array sesuai standar core/auth.php
 
+                // Paksa pengguna mengganti password default saat first login
+                if ((int)($user['must_change_password'] ?? 0) === 1) {
+                    $_SESSION['notif'] = ['type' => 'warning', 'message' => '⚠️ Demi keamanan, Anda wajib mengganti password terlebih dahulu.'];
+                    header("Location: /edit_profile.php");
+                    exit();
+                }
+
                 // Redireksi langsung ke halaman Dashboard utama SinergiCare
                 header("Location: /pages/dashboard.php");
                 exit();

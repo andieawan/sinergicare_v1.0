@@ -108,7 +108,7 @@ try {
     if (!empty($password_baru)) {
         // Opsi A: Memperbarui informasi profil beserta kata sandi baru (Hashed via BCRYPT)
         $hashed = password_hash($password_baru, PASSWORD_BCRYPT);
-        $stmt = $conn->prepare("UPDATE staf_sekolah SET nama = ?, email = ?, password = ? WHERE id = ?");
+        $stmt = $conn->prepare("UPDATE staf_sekolah SET nama = ?, email = ?, password = ?, must_change_password = 0 WHERE id = ?");
         $stmt->execute([$nama, $email, $hashed, $user_id]);
     } else {
         // Opsi B: Hanya memperbarui nama dan email saja (Password lama dipertahankan)

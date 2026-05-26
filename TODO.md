@@ -1,32 +1,21 @@
-# TODO - Bugfix & Security Hardening (SinergiCare)
+# TODO - Seed/Migration & Force Change Password
 
 ## Scope
-Perbaikan bug dan celah keamanan prioritas tinggi pada alur autentikasi dan modul jurnal.
+Perbaiki setup database agar menggunakan seed default user `admin/admin`, lalu paksa ganti password saat login pertama.
 
 ## Checklist
-- [x] Tambah helper CSRF token di `core/functions.php`
-  - [x] `csrf_token()`
-  - [x] `csrf_validate($token)`
-- [x] Hardening login di `modules/auth/login.php`
-  - [x] Regenerasi session ID saat login sukses (anti session fixation)
-  - [x] Hapus fallback password plaintext
-  - [x] Samarkan pesan error database (hindari info leakage)
-- [x] Hardening create jurnal di `modules/jurnal/store.php`
-  - [x] Validasi CSRF token
-  - [x] Validasi `category_id` benar-benar ada di DB
-  - [x] Validasi format tanggal `Y-m-d`
-  - [x] Batasi panjang `lokasi_kejadian` dan `catatan`
-  - [x] Samarkan pesan error database
-- [x] Hardening update jurnal di `modules/jurnal/update.php`
-  - [x] Validasi CSRF token
-  - [x] Validasi `category_id` benar-benar ada di DB
-  - [x] Validasi format tanggal `Y-m-d`
-  - [x] Batasi panjang `lokasi_kejadian` dan `catatan`
-  - [x] Samarkan pesan error database
-- [x] Update form di `views/modals/jurnal.php`
-  - [x] Tambah hidden input CSRF token
-- [x] Verifikasi cepat konsistensi sintaks file yang diubah
+- [x] Update migration/setup di `database/1setup.php`
+  - [x] Tambah kolom `must_change_password` pada tabel `staf_sekolah`
+  - [x] Ubah seed user default menjadi `admin` / `admin`
+  - [x] Set `must_change_password = 1` untuk user seed default
+  - [x] Perbarui output kredensial default pada setup
+- [x] Update alur login di `modules/auth/login.php`
+  - [x] Jika login sukses dan `must_change_password = 1`, redirect paksa ke `/edit_profile.php`
+  - [x] Set notifikasi bahwa user wajib ganti password
+- [x] Update proses ubah profil/password di `actions/proses_profile_edit.php`
+  - [x] Saat password baru berhasil disimpan, set `must_change_password = 0`
+- [x] Validasi cepat konsistensi perubahan lintas file
 
 ## Catatan
-- Fokus pada perubahan minimal namun berdampak tinggi.
-- Menjaga kompatibilitas struktur aplikasi yang sudah ada.
+- Fokus perubahan minimum, tanpa mengubah arsitektur utama aplikasi.
+- Kompatibel dengan mekanisme session/flash yang sudah ada.
