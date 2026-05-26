@@ -1,4 +1,8 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 /**
  * core/functions.php
  *
@@ -115,4 +119,27 @@ function getRoleLabel(string $role): string {
         'yayasan'        => 'Yayasan',
     ];
     return $labels[$role] ?? ucwords(str_replace('_', ' ', $role));
+}
+
+/**
+ * Generate / get CSRF token in session.
+ */
+function csrf_token(): string {
+    if (empty($_SESSION['csrf_token']) || !is_string($_SESSION['csrf_token'])) {
+        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+    }
+    return $_SESSION['csrf_token'];
+}
+
+/**
+ * Validate CSRF token using constant-time comparison.
+ */
+function csrf_validate(?string $token): bool {
+    if (!isset($_SESSION['csrf_token']) || !is_string($_SESSION['csrf_token'])) {
+        return false;
+    }
+    if (!is_string($token) || $token === '') {
+        return false;
+    }
+    return hash_equals($_SESSION['csrf_token'], $token);
 }

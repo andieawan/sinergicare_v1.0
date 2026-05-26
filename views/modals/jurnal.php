@@ -6,6 +6,7 @@
         </div>
         
         <form action="/modules/jurnal/update.php" method="POST" class="space-y-4">
+            <input type="hidden" name="_csrf" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
             <input type="hidden" id="edit_jurnal_id" name="id">
             
             <div>

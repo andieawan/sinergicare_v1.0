@@ -25,30 +25,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($conn) && $conn !== null) {
         if ($user) {
             $password_valid = false;
             
-            // Verifikasi kecocokan password (mendukung hash bcrypt & legacy plaintext)
+            // Verifikasi password hash modern (tanpa fallback plaintext)
             if (password_verify($password, $user['password'])) {
                 $password_valid = true;
-            } elseif ($password === $user['password']) {
-                $password_valid = true;
             }
-            
+
             if ($password_valid) {
+                // Mitigasi session fixation
+                session_regenerate_id(true);
+
                 // Registrasi data identitas ke dalam Session aplikasi
                 $_SESSION['user_id']    = $user['id'];
                 $_SESSION['user_nama']  = $user['nama'];
                 $_SESSION['user_roles'] = [$user['roles']]; // Dibungkus array sesuai standar core/auth.php
-                
+
                 // Redireksi langsung ke halaman Dashboard utama SinergiCare
                 header("Location: /pages/dashboard.php");
                 exit();
             } else {
-                setFlash('error', '⚠️ Kata sandi yang Anda masukkan salah!');
+                setFlash('error', '⚠️ Username atau kata sandi tidak valid.');
             }
         } else {
             setFlash('error', '⚠️ Username tidak terdaftar di sistem!');
         }
     } catch (PDOException $e) {
-        setFlash('error', '⚠️ Gagal terhubung ke database: ' . $e->getMessage());
+        error_log('Login DB error: ' . $e->getMessage());
+        setFlash('error', '⚠️ Terjadi gangguan sistem. Silakan coba lagi.');
     }
 } else {
     setFlash('error', '⚠️ Metode request data tidak sah!');

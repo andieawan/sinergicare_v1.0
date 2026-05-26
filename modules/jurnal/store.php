@@ -8,15 +8,35 @@ requireLogin();
 requireRole(['super_admin', 'admin', 'bk', 'guru', 'waka_kesiswaan', 'kepala_jurusan']);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($conn) && $conn !== null) {
+    $csrf            = $_POST['_csrf'] ?? '';
     $student_info     = trim($_POST['student_info'] ?? '');
     $category_id      = (int)($_POST['category_id'] ?? 0);
-    $tanggal_kejadian = $_POST['tanggal_kejadian'] ?? date('Y-m-d');
+    $tanggal_kejadian = trim((string)($_POST['tanggal_kejadian'] ?? date('Y-m-d')));
     $lokasi_kejadian  = trim($_POST['lokasi_kejadian'] ?? '');
     $catatan          = trim($_POST['catatan'] ?? '');
     $user_id_login    = currentUserId();
 
+    if (!csrf_validate($csrf)) {
+        setFlash('error', '🔒 Permintaan ditolak (CSRF token tidak valid).');
+        header("Location: /pages/jurnal.php");
+        exit();
+    }
+
     if (empty($student_info) || empty($category_id) || empty($lokasi_kejadian) || empty($catatan)) {
         setFlash('error', '⚠️ Seluruh kolom formulir wajib diisi dengan lengkap!');
+        header("Location: /pages/jurnal.php");
+        exit();
+    }
+
+    if (strlen($lokasi_kejadian) > 255 || strlen($catatan) > 2000) {
+        setFlash('error', '⚠️ Data terlalu panjang. Lokasi maksimal 255 karakter dan catatan maksimal 2000 karakter.');
+        header("Location: /pages/jurnal.php");
+        exit();
+    }
+
+    $dt = DateTime::createFromFormat('Y-m-d', $tanggal_kejadian);
+    if (!$dt || $dt->format('Y-m-d') !== $tanggal_kejadian) {
+        setFlash('error', '⚠️ Format tanggal kejadian tidak valid.');
         header("Location: /pages/jurnal.php");
         exit();
     }
@@ -39,14 +59,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($conn) && $conn !== null) {
             exit();
         }
 
+        // Validasi category_id harus ada
+        $stmt_cat = $conn->prepare("SELECT id FROM violation_categories WHERE id = ? LIMIT 1");
+        $stmt_cat->execute([$category_id]);
+        if (!$stmt_cat->fetch(PDO::FETCH_ASSOC)) {
+            setFlash('error', '⚠️ Jenis pelanggaran tidak valid.');
+            header("Location: /pages/jurnal.php");
+            exit();
+        }
+
         // Cari ID Siswa berdasarkan NISN hasil parsing
         $stmt_check = $conn->prepare("SELECT id FROM students WHERE nisn = ? LIMIT 1");
         $stmt_check->execute([$nisn]);
         $student = $stmt_check->fetch(PDO::FETCH_ASSOC);
 
         if (!$student) {
-            // Mengubah pesan error agar lebih deskriptif ketika database mengembalikan nilai kosong
-            setFlash('error', '⚠️ Siswa dengan NISN ' . htmlspecialchars($nisn) . ' tidak ditemukan di sistem! Pastikan data rekomendasi belum kedaluwarsa.');
+            setFlash('error', '⚠️ Siswa dengan NISN ' . htmlspecialchars($nisn, ENT_QUOTES, 'UTF-8') . ' tidak ditemukan di sistem.');
             header("Location: /pages/jurnal.php");
             exit();
         }
@@ -65,7 +93,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($conn) && $conn !== null) {
 
         setFlash('success', '✨ Laporan insiden berhasil dicatat ke dalam jurnal operasional.');
     } catch (PDOException $e) {
-        setFlash('error', '⚠️ Gagal menyimpan laporan: ' . $e->getMessage());
+        error_log('Jurnal store DB error: ' . $e->getMessage());
+        setFlash('error', '⚠️ Terjadi gangguan sistem saat menyimpan laporan.');
     }
 } else {
     setFlash('error', '⚠️ Metode pengiriman data tidak valid!');

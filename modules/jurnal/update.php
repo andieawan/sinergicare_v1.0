@@ -7,17 +7,52 @@ require_once __DIR__ . '/../../core/functions.php';
 requireLogin();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($conn) && $conn !== null) {
+    $csrf             = $_POST['_csrf'] ?? '';
     $id               = (int)($_POST['id'] ?? 0);
     $category_id      = (int)($_POST['category_id'] ?? 0);
-    $tanggal_kejadian = $_POST['tanggal_kejadian'] ?? date('Y-m-d');
+    $tanggal_kejadian = trim((string)($_POST['tanggal_kejadian'] ?? date('Y-m-d')));
     $lokasi_kejadian  = trim($_POST['lokasi_kejadian'] ?? '');
     $catatan          = trim($_POST['catatan'] ?? '');
     
-    $user_id_login    = currentUserId();
+    $user_id_login = currentUserId();
     $user_roles    = currentUserRoles();
     $is_bk_admin   = count(array_intersect(['bk', 'admin', 'super_admin'], $user_roles)) > 0;
 
+    if (!csrf_validate($csrf)) {
+        setFlash('error', '🔒 Permintaan ditolak (CSRF token tidak valid).');
+        header("Location: /pages/jurnal.php");
+        exit();
+    }
+
+    if ($id <= 0 || $category_id <= 0 || $lokasi_kejadian === '' || $catatan === '') {
+        setFlash('error', '⚠️ Data pembaruan jurnal tidak lengkap.');
+        header("Location: /pages/jurnal.php");
+        exit();
+    }
+
+    if (strlen($lokasi_kejadian) > 255 || strlen($catatan) > 2000) {
+        setFlash('error', '⚠️ Data terlalu panjang. Lokasi maksimal 255 karakter dan catatan maksimal 2000 karakter.');
+        header("Location: /pages/jurnal.php");
+        exit();
+    }
+
+    $dt = DateTime::createFromFormat('Y-m-d', $tanggal_kejadian);
+    if (!$dt || $dt->format('Y-m-d') !== $tanggal_kejadian) {
+        setFlash('error', '⚠️ Format tanggal kejadian tidak valid.');
+        header("Location: /pages/jurnal.php");
+        exit();
+    }
+
     try {
+        // Validasi category_id harus ada
+        $stmt_cat = $conn->prepare("SELECT id FROM violation_categories WHERE id = ? LIMIT 1");
+        $stmt_cat->execute([$category_id]);
+        if (!$stmt_cat->fetch(PDO::FETCH_ASSOC)) {
+            setFlash('error', '⚠️ Jenis pelanggaran tidak valid.');
+            header("Location: /pages/jurnal.php");
+            exit();
+        }
+
         // Ambil data insiden lama untuk pengecekan hak milik (ownership)
         $stmt_get = $conn->prepare("SELECT * FROM incidents WHERE id = ?");
         $stmt_get->execute([$id]);
@@ -60,7 +95,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($conn) && $conn !== null) {
 
         setFlash('success', '✨ Catatan jurnal insiden berhasil diperbarui.');
     } catch (PDOException $e) {
-        setFlash('error', '⚠️ Gagal memperbarui data: ' . $e->getMessage());
+        error_log('Jurnal update DB error: ' . $e->getMessage());
+        setFlash('error', '⚠️ Terjadi gangguan sistem saat memperbarui data.');
     }
 } else {
     setFlash('error', '⚠️ Metode request tidak sah!');
