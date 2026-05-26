@@ -1,8 +1,8 @@
 <?php
-require_once '../../config/config.php';
-require_once '../../core/auth.php';
-require_once '../../core/flash.php';
-require_once '../../vendor/autoload.php';
+require_once __DIR__ . '/../../config/config.php';
+require_once __DIR__ . '/../../core/auth.php';
+require_once __DIR__ . '/../../core/flash.php';
+require_once __DIR__ . '/../../vendor/autoload.php';
 
 requireLogin();
 // Hanya admin/super_admin yang berhak mengelola data induk siswa
@@ -12,14 +12,14 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 
 // Pastikan metode adalah POST
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header('Location: ../../pages/admin.php');
+    header('Location: /pages/admin.php');
     exit();
 }
 
 // 1. Validasi File Upload
 if (!isset($_FILES['file_excel']) || $_FILES['file_excel']['error'] !== UPLOAD_ERR_OK) {
     setFlash('error', 'Gagal mengunggah file. Pastikan file Excel telah dipilih.');
-    header('Location: ../../pages/admin.php');
+    header('Location: /pages/admin.php');
     exit();
 }
 
@@ -31,14 +31,14 @@ $fileExt     = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
 // Validasi Ekstensi file wajib .xlsx
 if ($fileExt !== 'xlsx') {
     setFlash('error', 'Format file wajib .xlsx (Excel).');
-    header('Location: ../../pages/admin.php');
+    header('Location: /pages/admin.php');
     exit();
 }
 
 // Validasi ukuran maksimal 5MB
 if ($fileSize > 5 * 1024 * 1024) {
     setFlash('error', 'Ukuran file maksimal 5MB.');
-    header('Location: ../../pages/admin.php');
+    header('Location: /pages/admin.php');
     exit();
 }
 
@@ -130,5 +130,5 @@ try {
 }
 
 // Kembali ke halaman admin
-header('Location: ../../pages/admin.php');
+header('Location: /pages/admin.php');
 exit();

@@ -1,8 +1,7 @@
 <?php
 // cetak_riwayat.php (CETAK HISTORI PELANGGARAN SISWA)
-// PERBAIKAN PATH: Tambahkan ../ karena file dimasukkan ke dalam folder prints/
-require_once '../config/config.php';
-require_once '../core/auth.php';
+require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../core/auth.php';
 
 // Proteksi Akses Sesi - Menggunakan fungsi otentikasi terpusat sistem
 requireLogin();

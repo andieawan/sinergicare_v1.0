@@ -17,6 +17,11 @@ if (!hasRole(['super_admin', 'admin', 'bk'])) {
 
 header('Content-Type: application/json');
 
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    http_response_code(405);
+    die(json_encode(['status' => 'error', 'message' => 'Metode tidak diizinkan']));
+}
+
 try {
     $user_id    = currentUserId();
     $student_id = isset($_POST['student_id']) ? (int)$_POST['student_id'] : 0;

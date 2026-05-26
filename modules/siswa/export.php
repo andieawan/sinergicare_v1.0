@@ -120,10 +120,14 @@ if (isset($conn) && $conn !== null) {
             $sheet->getColumnDimension($col)->setAutoSize(true);
         }
 
+        // Bersihkan output buffer agar tidak ada kebocoran yang merusak file Excel
+        if (ob_get_length()) {
+            ob_end_clean();
+        }
+
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         header('Content-Disposition: attachment;filename="SinergiCare_MasterSiswa_' . date('Ymd_His') . '.xlsx"');
         header('Cache-Control: max-age=0');
-        header('Cache-Control: max-age=1');
 
         $writer = new Xlsx($spreadsheet);
         $writer->save('php://output');

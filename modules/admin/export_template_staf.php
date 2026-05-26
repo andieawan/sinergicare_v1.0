@@ -1,9 +1,9 @@
 <?php
-require_once '../../config/config.php';
-require_once '../../core/auth.php';
+require_once __DIR__ . '/../../config/config.php';
+require_once __DIR__ . '/../../core/auth.php';
 
 // Pastikan composer autoload sudah dipanggil
-require_once '../../vendor/autoload.php';
+require_once __DIR__ . '/../../vendor/autoload.php';
 
 requireLogin();
 // Hanya admin/super_admin yang berhak mengelola staf

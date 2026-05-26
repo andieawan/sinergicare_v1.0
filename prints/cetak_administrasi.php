@@ -1,7 +1,6 @@
 <?php
 // cetak_administrasi.php (MASTER GENERATOR DOKUMEN BK)
-// PERBAIKAN PATH: Tambahkan ../ karena file dimasukkan ke dalam folder prints/
-require_once '../config/config.php';
+require_once __DIR__ . '/../config/config.php';
 
 if (session_status() === PHP_SESSION_NONE) { session_start(); }
 if (!isset($_SESSION['user_id'])) { die("Akses ditolak."); }

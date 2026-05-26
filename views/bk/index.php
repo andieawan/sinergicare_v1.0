@@ -192,14 +192,17 @@ function closeModalCetakSurat() {
 
 function catatLogSuratAsync(e) {
     e.preventDefault();
-    
-    const formData = new FormData();
-    formData.append('student_id', document.getElementById('modal_student_id').value);
-    formData.append('tipe_surat', 'panggilan_orang_tua');
-    formData.append('tanggal', document.getElementById('surat_tanggal').value);
-    formData.append('jam', document.getElementById('surat_jam').value);
 
-    // BUG FIX: Tunggu fetch selesai sebelum menutup modal
+    const studentId = document.getElementById('modal_student_id').value;
+    const tanggal   = document.getElementById('surat_tanggal').value;
+    const jam       = document.getElementById('surat_jam').value;
+
+    const formData = new FormData();
+    formData.append('student_id', studentId);
+    formData.append('tipe_surat', 'panggilan_ortu');
+    formData.append('tanggal', tanggal);
+    formData.append('jam', jam);
+
     fetch('/modules/bk/log_cetak.php', { method: 'POST', body: formData })
         .then(res => {
             if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
@@ -207,16 +210,17 @@ function catatLogSuratAsync(e) {
         })
         .then(data => {
             console.log('Log arsip surat panggilan tercatat.');
-            // Buka form cetak di tab baru
-            const form = document.getElementById('form_cetak_surat');
-            window.open(form.action + '?student_id=' + document.getElementById('modal_student_id').value, '_blank');
         })
         .catch(err => {
             console.error('Error:', err);
-            alert('Gagal mencatat log surat: ' + err.message);
         })
         .finally(() => {
-            // Tutup modal setelah fetch selesai (berhasil atau gagal)
+            // Buka tab cetak dengan parameter tanggal & jam yang benar
+            const printUrl = '/prints/cetak_panggilan.php'
+                + '?student_id=' + encodeURIComponent(studentId)
+                + '&tanggal='    + encodeURIComponent(tanggal)
+                + '&jam='        + encodeURIComponent(jam);
+            window.open(printUrl, '_blank');
             closeModalCetakSurat();
         });
 }
