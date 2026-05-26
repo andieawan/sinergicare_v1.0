@@ -1,5 +1,6 @@
 <?php
 session_start();
+require_once __DIR__ . '/config/config.php';
 // Jika sudah login, langsung ke halaman utama
 if (isset($_SESSION['user_id'])) {
     header("Location: index.php");
@@ -31,7 +32,7 @@ require_once __DIR__ . '/core/flash.php';
         ?>
 
         <!-- BUG FIX: form action → /modules/auth/login.php (bukan actions/proses_login.php yang tidak ada) -->
-        <form action="/modules/auth/login.php" method="POST" class="space-y-4">
+        <form action="<?= $web_base ?>/modules/auth/login.php" method="POST" class="space-y-4">
             <div>
                 <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Username</label>
                 <input type="text" name="username" class="w-full p-2.5 text-sm border rounded-lg bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none" placeholder="username" required>

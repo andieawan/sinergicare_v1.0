@@ -6,7 +6,12 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($conn) && $conn !== null) {
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    header("Location: /login.php");
+    exit();
+}
+
+if (isset($conn) && $conn !== null) {
     $username = trim($_POST['username'] ?? '');
     $password = $_POST['password'] ?? '';
 
@@ -59,8 +64,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($conn) && $conn !== null) {
         error_log('Login DB error: ' . $e->getMessage());
         setFlash('error', '⚠️ Terjadi gangguan sistem. Silakan coba lagi.');
     }
-} else {
-    setFlash('error', '⚠️ Metode request data tidak sah!');
 }
 
 // Kembali ke halaman utama login jika otentikasi gagal
