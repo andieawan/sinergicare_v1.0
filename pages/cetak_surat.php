@@ -378,8 +378,15 @@ function handlePrintSubmit(e) {
         logData.append('jam', formData.get('jam'));
     }
 
+    // --- Tentukan URL cetak berdasarkan jenis surat ---
+    const printUrls = {
+        'panggilan_ortu':       '/prints/cetak_panggilan.php',
+        'izin_meninggalkan':    '/prints/cetak_meninggalkan.php',
+        'pernyataan_disiplin':  '/prints/cetak_pernyataan.php',
+        'sp':                   '/prints/cetak_sp.php'
+    };
+
     // --- Kirim log lalu buka tab cetak ---
-    // Ganti url lama ke endpoint terpusat di /modules/bk/
     fetch('/modules/bk/log_cetak.php', {
             method: 'POST',
             body: formData
@@ -389,6 +396,24 @@ function handlePrintSubmit(e) {
             if (data.status === 'success') {
                 console.log('Arsip log surat berhasil diperbarui.');
             }
+        })
+        .catch(err => {
+            console.error('Log error:', err);
+        })
+        .finally(() => {
+            // Buka tab cetak setelah log (berhasil atau gagal)
+            const baseUrl = printUrls[letterType];
+            if (baseUrl) {
+                let printUrl = baseUrl + '?student_id=' + studentId;
+                if (letterType === 'panggilan_ortu') {
+                    printUrl += '&tanggal=' + encodeURIComponent(formData.get('tanggal'));
+                    printUrl += '&jam='     + encodeURIComponent(formData.get('jam'));
+                } else if (letterType === 'sp') {
+                    printUrl += '&id=' + encodeURIComponent(formData.get('sp_id'));
+                }
+                window.open(printUrl, '_blank');
+            }
+            closeLetterForm();
         });
 }
 

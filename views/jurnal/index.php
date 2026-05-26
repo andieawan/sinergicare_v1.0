@@ -5,6 +5,7 @@
         <p class="text-xs text-slate-400 mb-4">Pastikan data kronologi dan identifikasi siswa diisi secara valid.</p>
         
         <form action="/modules/jurnal/store.php" method="POST" class="space-y-4">
+            <input type="hidden" name="_csrf" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
             <div>
                 <label for="student_input" class="block text-xs font-semibold text-slate-600 mb-1">Cari Nama / NISN Siswa</label>
                 <input list="student_list" id="student_input" name="student_info" autocomplete="off" required

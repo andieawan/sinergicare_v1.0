@@ -8,7 +8,7 @@
  * student_id, deskripsi_tugas, penanggung_jawab, status_tugas, created_at.
  */
 
-require_once '../config/config.php';
+require_once __DIR__ . '/../config/config.php';
 
 if ($conn === null) {
     die("❌ Tidak bisa terhubung ke database. Setup database terlebih dahulu!");
